@@ -24,21 +24,54 @@ module.exports = {
             });
         }
     }, 
-    async cadastrarMensagem(request, response) {
-        try {
-            return response.status(200).json({
-                sucesso: true, 
-                mensagem: 'Cadastro de mensagem', 
-                dados: null
-            });
-        } catch (error) {
-            return response.status(500).json({
-                sucesso: false, 
-                mensagem: 'Erro na requisição.', 
-                dados: error.message
-            });
-        }
-    }, 
+   async cadastrarMensagem(request, response) {
+    try {
+        const {
+            negoc_id,
+            id_usuario_remetente,
+            mens_conteudo,
+            mens_data_envio,
+            mens_visualizada
+        } = request.body;
+
+        const sql = `
+            INSERT INTO MENSAGENS 
+            (negoc_id, id_usuario_remetente, mens_conteudo, mens_data_envio, mens_visualizada) 
+            VALUES (?, ?, ?, ?, ?)
+        `;
+
+        const values = [
+            negoc_id,
+            id_usuario_remetente,
+            mens_conteudo,
+            mens_data_envio,
+            mens_visualizada
+        ];
+
+        const [result] = await db.query(sql, values);
+
+        const dados = {
+            id: result.insertId,
+            negociacao: negoc_id,
+            remetente: id_usuario_remetente,
+            conteudo: mens_conteudo
+        };
+
+        return response.status(200).json({
+            sucesso: true,
+            mensagem: 'Cadastro de mensagem',
+            dados: dados
+        });
+
+    } catch (error) {
+        return response.status(500).json({
+            sucesso: false,
+            mensagem: 'Erro na requisição.',
+            dados: error.message
+        });
+    }
+      },
+
     async editarMensagem(request, response) {
         try {
             return response.status(200).json({
