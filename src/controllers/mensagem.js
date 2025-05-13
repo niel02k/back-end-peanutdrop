@@ -72,21 +72,58 @@ module.exports = {
     }
       },
 
-    async editarMensagem(request, response) {
+      async editarMensagem(request, response) {
         try {
+            const { id } = request.params;
+            const {
+                conteudo,
+                data_envio,
+                visualizada
+            } = request.body;
+    
+            const sql = `
+                UPDATE MENSAGENS
+                SET 
+                    mens_conteudo = ?, 
+                    mens_data_envio = ?, 
+                    mens_visualizada = ?
+                WHERE mens_id = ?
+            `;
+    
+            const values = [conteudo, data_envio, visualizada, id];
+    
+            const [result] = await db.query(sql, values);
+    
+            if (result.affectedRows === 0) {
+                return response.status(404).json({
+                    sucesso: false,
+                    mensagem: 'Mensagem não encontrada para atualização.',
+                    dados: null
+                });
+            }
+    
+            const dados = {
+                id,
+                conteudo,
+                data_envio,
+                visualizada
+            };
+    
             return response.status(200).json({
-                sucesso: true, 
-                mensagem: 'Alteração no cadastro de mensagem', 
-                dados: null
+                sucesso: true,
+                mensagem: `Mensagem ${id} atualizada com sucesso`,
+                dados
             });
+    
         } catch (error) {
             return response.status(500).json({
-                sucesso: false, 
-                mensagem: 'Erro na requisição.', 
+                sucesso: false,
+                mensagem: 'Erro na requisição.',
                 dados: error.message
             });
         }
-    }, 
+    }
+,    
     async apagarMensagem(request, response) {
         try {
             return response.status(200).json({

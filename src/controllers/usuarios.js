@@ -78,16 +78,13 @@ module.exports = {
     }, 
     async editarUsuarios(request, response) {
         try {
+            const { id } = request.params;
             const {
-                usu_id,
-                usu_tipo_usuario,
-                usu_nome,
-                usu_documento,
-                usu_email,
-                usu_senha,
-                usu_endereco,
-                usu_telefone,
-                usu_data_cadastro
+                nome,
+                email,
+                senha,
+                endereco,
+                telefone
             } = request.body;
     
             const sql = `
@@ -101,14 +98,7 @@ module.exports = {
                 WHERE usu_id = ?
             `;
     
-            const values = [
-                usu_nome,
-                usu_email,
-                usu_senha,
-                usu_endereco,
-                usu_telefone,
-                usu_id
-            ];
+            const values = [nome, email, senha, endereco, telefone, id];
     
             const [result] = await db.query(sql, values);
     
@@ -121,17 +111,18 @@ module.exports = {
             }
     
             const dados = {
-                id: usu_id,
-                nome: usu_nome,
-                email: usu_email,
-                telefone: usu_telefone,
-                endereco: usu_endereco
+                id,
+                nome,
+                email,
+                telefone,
+                endereco,
+                senha
             };
     
             return response.status(200).json({
                 sucesso: true,
-                mensagem: 'Alteração no cadastro de usuário',
-                dados: dados
+                mensagem: `Usuário ${id} atualizado com sucesso`,
+                dados
             });
     
         } catch (error) {
@@ -141,7 +132,8 @@ module.exports = {
                 dados: error.message
             });
         }
-    },    
+    }
+    ,    
     async apagarUsuarios(request, response) {
         try {
             return response.status(200).json({

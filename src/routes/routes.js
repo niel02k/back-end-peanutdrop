@@ -13,12 +13,12 @@ router.delete('/usuarios', usuariosController.apagarUsuarios);
 
 router.get('/negociacoes', negociacoesController.listarNegociacoes); 
 router.post('/negociacoes', negociacoesController.cadastrarNegociacoes); 
-router.patch('/negociacoes', negociacoesController.editarNegociacoes); 
+router.patch('/negociacoes/:id', negociacoesController.editarNegociacoes); 
 router.delete('/negociacoes', negociacoesController.apagarNegociacoes); 
 
 router.get('/mensagem', mensagemsController.listarMensagem); 
 router.post('/mensagem', mensagemsController.cadastrarMensagem); 
-router.patch('/mensagem', mensagemsController.editarMensagem); 
+router.patch('/mensagem/:id', mensagemsController.editarMensagem); 
 router.delete('/mensagem', mensagemsController.apagarMensagem); 
 
 module.exports = router;
