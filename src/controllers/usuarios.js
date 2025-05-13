@@ -136,9 +136,29 @@ module.exports = {
     ,    
     async apagarUsuarios(request, response) {
         try {
+
+            const {id}= request.params;
+
+            const sql = `DELETE FROM usuarios WHERE usu_id = ?`;
+
+            const values = [id];
+
+            const [result] = await db.query(sql, values);
+ 
+
+            if (result.affectedRows === 0) {
+                return response.status(404).json({
+                    sucesso: false,
+                    mensagem: `Usario ${id} não encontrado ` ,
+                    dados: null
+                });
+            }
+    
+            
+
             return response.status(200).json({
                 sucesso: true, 
-                mensagem: 'Exclusão de usuário', 
+                mensagem: `Usario ${id} excluido com sucesso `, 
                 dados: null
             });
         } catch (error) {

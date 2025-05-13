@@ -66,32 +66,75 @@ module.exports = {
     },    
     async editarNegociacoes(request, response) {
         try {
+            const { id } = request.params;
+            const { status } = request.body;
+    
+            const sql = `
+                UPDATE NEGOCIACOES
+                SET negoc_status = ?
+                WHERE negoc_id = ?
+            `;
+    
+            const values = [status, id];
+    
+            const [result] = await db.query(sql, values);
+    
+            if (result.affectedRows === 0) {
+                return response.status(404).json({
+                    sucesso: false,
+                    mensagem: 'Negociação não encontrada para atualização.',
+                    dados: null
+                });
+            }
+    
+            const dados = {
+                id,
+                status
+            };
+    
             return response.status(200).json({
-                sucesso: true, 
-                mensagem: 'Alteração no cadastro de negociacoes', 
-                dados: null
+                sucesso: true,
+                mensagem: `Negociação ${id} atualizada com sucesso`,
+                dados
             });
+    
         } catch (error) {
             return response.status(500).json({
-                sucesso: false, 
-                mensagem: 'Erro na requisição.', 
+                sucesso: false,
+                mensagem: 'Erro na requisição.',
                 dados: error.message
             });
         }
     }, 
     async apagarNegociacoes(request, response) {
         try {
+            const { id } = request.params;
+    
+            const sql = `DELETE FROM negociacoes WHERE negoc_id = ?`;
+            const values = [id];
+    
+            const [result] = await db.query(sql, values);
+    
+            if (result.affectedRows === 0) {
+                return response.status(404).json({
+                    sucesso: false,
+                    mensagem: `Negociação ${id} não encontrada.`,
+                    dados: null
+                });
+            }
+    
             return response.status(200).json({
-                sucesso: true, 
-                mensagem: 'Exclusão de negociacoes', 
+                sucesso: true,
+                mensagem: `Negociação ${id} excluída com sucesso.`,
                 dados: null
             });
+    
         } catch (error) {
             return response.status(500).json({
-                sucesso: false, 
-                mensagem: 'Erro na requisição.', 
+                sucesso: false,
+                mensagem: 'Erro na requisição.',
                 dados: error.message
             });
         }
-    }, 
+    },
 };  

@@ -124,19 +124,36 @@ module.exports = {
         }
     }
 ,    
-    async apagarMensagem(request, response) {
-        try {
-            return response.status(200).json({
-                sucesso: true, 
-                mensagem: 'Exclusão de mensagem', 
+async apagarMensagem(request, response) {
+    try {
+        const { id } = request.params;
+
+        const sql = `DELETE FROM mensagens WHERE mens_id = ?`;
+
+        const values = [id];
+
+        const [result] = await db.query(sql, values);
+
+        if (result.affectedRows === 0) {
+            return response.status(404).json({
+                sucesso: false,
+                mensagem: `Mensagem ${id} não encontrada.`,
                 dados: null
             });
-        } catch (error) {
-            return response.status(500).json({
-                sucesso: false, 
-                mensagem: 'Erro na requisição.', 
-                dados: error.message
-            });
         }
-    }, 
+
+        return response.status(200).json({
+            sucesso: true,
+            mensagem: `Mensagem ${id} excluída com sucesso.`,
+            dados: null
+        });
+    } catch (error) {
+        return response.status(500).json({
+            sucesso: false,
+            mensagem: 'Erro na requisição.',
+            dados: error.message
+        });
+    }
+},
+
 };  
