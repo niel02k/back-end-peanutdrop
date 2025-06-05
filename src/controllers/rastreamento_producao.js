@@ -12,11 +12,9 @@ module.exports = {
             rast_data_plantacao, 
             rast_data_colheita, 
             rast_informacoes_adicionais, 
-            rast_area_plantacao,
-            rast_ativo =1 AS rast_ativo  
+            rast_area_plantacao
             FROM RASTREAMENTO_PRODUCAO
-            WHERE 
-            rast_ativo = 1;
+           
          `;
 
 

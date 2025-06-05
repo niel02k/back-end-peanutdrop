@@ -9,10 +9,9 @@ module.exports = {
                contrato_id, 
                id_negociacao, 
                contrato_data_assinatura, 
-               contrato_detalhes_contrato,
-               contrato_ativo = 1 AS contrato_ativo 
+               contrato_detalhes_contrato
                FROM CONTRATOS
-               WHERE contrato_ativo = 1;
+        
             `;
 
             const [rows] = await db.query(sql);

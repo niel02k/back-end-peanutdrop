@@ -8,10 +8,10 @@ module.exports = {
             SELECT 
             cert_id, 
             cert_orgao_regulador, 
-            cert_nome,
-            cert_ativo = 1 AS cert_ativo
+            cert_nome
+           
             FROM CERTIFICACOES
-            WHERE cert_ativo = 1;
+          ;
 
             
          `;

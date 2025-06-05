@@ -6,10 +6,10 @@ module.exports = {
 
              const sql = `SELECT
              agr_cert_id, agri_id, cert_id, agr_local,
-             agr_data, agr_arquivo, agr_status,
-             agr_ativo = 1 AS agr_ativo 
+             agr_data, agr_arquivo, agr_status
+            
              FROM AGR_CERTIFICACOES
-             WHERE agr_ativo = 1;
+          
           `;
 
             
