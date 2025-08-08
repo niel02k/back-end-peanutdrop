@@ -9,7 +9,8 @@ const usuariosController = require('../controllers/usuarios');
 router.get('/usuarios', usuariosController.listarUsuarios); 
 router.post('/usuarios', usuariosController.cadastrarUsuarios); 
 router.patch('/usuarios/:id', usuariosController.editarUsuarios); 
-router.delete('/usuarios/:id', usuariosController.apagarUsuarios); 
+router.delete('/usuarios/:id', usuariosController.apagarUsuarios);
+router.get('/login', usuariosController.login); 
 
 
 router.get('/negociacoes', negociacoesController.listarNegociacoes); 
