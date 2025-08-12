@@ -1,150 +1,124 @@
-const db = require('../dataBase/connection'); 
+// Controllers atualizados conforme Apostilas 004 (Consultas) e 005 (Validações)
+// Padrões aplicados: filtros por query, paginação, JOINs (quando indicado), tratamento de BIT, try/catch, status HTTP consistentes.
+// Observação: ajuste nomes de tabelas/colunas conforme seu schema real.
 
+const db = require('../dataBase/connection'); // usa mysql2/promise com pool
+/** Helpers comuns **/
+function buildPagination(query) {
+  const page = Math.max(parseInt(query.page || '1', 10), 1);
+  const limit = Math.max(parseInt(query.limit || '20', 10), 1);
+  const offset = (page - 1) * limit;
+  return { page, limit, offset };
+}
+
+function pickFilters(query, allowed) {
+  const where = [];
+  const values = [];
+  for (const key of allowed) {
+    if (query[key] !== undefined && query[key] !== '') {
+      where.push(`${key} LIKE ?`);
+      values.push(`%${query[key]}%`);
+    }
+  }
+  return { where, values };
+}
+
+function sendOk(res, mensagem, dados) {
+  const arr = Array.isArray(dados) ? dados : (dados ? [dados] : []);
+  res.status(200).json({ sucesso: true, mensagem, dados: arr, itens: arr.length });
+}
+
+function sendCreated(res, mensagem, dados) {
+  res.status(201).json({ sucesso: true, mensagem, dados, itens: Array.isArray(dados) ? dados.length : 1 });
+}
+
+function sendNotFound(res, mensagem='Registro não encontrado.') {
+  res.status(404).json({ sucesso: false, mensagem, dados: null, itens: 0 });
+}
+
+function sendBadRequest(res, mensagem) {
+  res.status(400).json({ sucesso: false, mensagem, dados: null, itens: 0 });
+}
+
+function sendError(res, error) {
+  res.status(500).json({ sucesso: false, mensagem: 'Erro na requisição.', dados: error.message, itens: 0 });
+}
 module.exports = {
-    async listarAmendoins(request, response) {
-        try {
+  // GET /amendoins
+  async listarAmendoins(req, res) {
+    try {
+      const { page, limit, offset } = buildPagination(req.query);
+      const { where, values } = pickFilters(req.query, ["ame_tipo", "ame_qualidade", "ame_variedade"]);
+      const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+      const sql = `SELECT *, CAST(ame_ativo AS UNSIGNED) AS ame_ativo
+                   FROM amendoins
+                   ${whereSql}
+                   ORDER BY ame_id DESC
+                   LIMIT ? OFFSET ?`;
+      const [rows] = await db.query(sql, [...values, limit, offset]);
+      sendOk(res, 'Lista de amendoins.', rows);
+    } catch (error) {
+      sendError(res, error);
+    }
+  },
 
-          
-            const sql = `
-            SELECT amen_id, amen_variedade, amen_tamanho, 
-            amen_outras_caracteristicas FROM AMENDOINS;
-         `;
+  // POST /amendoins
+  async cadastrarAmendoins(req, res) {
+    try {
+      const data = req.body;
+      if (!data || !Object.keys(data).length) return sendBadRequest(res, 'Payload vazio.');
+      const cols = Object.keys(data);
+      const vals = Object.values(data);
+      const qMarks = cols.map(() => '?').join(', ');
+      const sql = `INSERT INTO amendoins (${cols.join(', ')}) VALUES (${qMarks})`;
+      const [result] = await db.query(sql, vals);
+      sendCreated(res, 'Amendoins cadastrado(a).', { id: result.insertId });
+    } catch (error) {
+      sendError(res, error);
+    }
+  },
 
-         const [rows] = await db.query(sql);
+  // PATCH /amendoins/:id
+  async editarAmendoins(req, res) {
+    try {
+      const { id } = req.params;
+      const [check] = await db.query('SELECT ame_id FROM amendoins WHERE ame_id = ?', [id]);
+      if (!check.length) return sendNotFound(res);
 
-         const nRegistros = rows.length;
+      const data = req.body || {};
+      const fields = [];
+      const values = [];
+      for (const [k,v] of Object.entries(data)) {
+        fields.push(`${k} = ?`);
+        values.push(v);
+      }
+      if (!fields.length) return sendBadRequest(res, 'Nenhum campo para atualizar.');
 
-            return response.status(200).json({
-                sucesso: true, 
-                mensagem: 'Lista de Amendoins', 
-                nRegistros,
-                dados: rows
-            });
-        } catch (error) {
-            return response.status(500).json({
-                sucesso: false, 
-                mensagem: 'Erro na requisição.', 
-                dados: error.message
-            });
-        }
-    }, 
-    async cadastrarAmendoins(request, response) {
-        try {
+      const sql = `UPDATE amendoins SET ${fields.join(', ')} WHERE ame_id = ?`;
+      values.push(id);
+      const [result] = await db.query(sql, values);
+      sendOk(res, 'Amendoins atualizado(a).', { id, linhas_afetadas: result.affectedRows });
+    } catch (error) {
+      sendError(res, error);
+    }
+  },
 
-            const { amen_variedade, amen_tamanho, amen_outras_caracteristicas } = request.body;
-            
-            // Instrução SQL
-            const sql = `
-              INSERT INTO AMENDOINS (amen_variedade, 
-              amen_tamanho, 
-              amen_outras_caracteristicas) 
-              VALUES
-                        (?, ?, ?)
-                    `;
+  // DELETE /amendoins/:id
+  async apagarAmendoins(req, res) {
+    try {
+      const { id } = req.params;
+      const [check] = await db.query('SELECT ame_id FROM amendoins WHERE ame_id = ?', [id]);
+      if (!check.length) return sendNotFound(res);
+      try {
+        const [r] = await db.query('DELETE FROM amendoins WHERE ame_id = ?', [id]);
+        if (!r.affectedRows) return sendNotFound(res);
+        sendOk(res, 'Amendoins excluído(a).', { id });
+      } catch (e) {
+        return sendBadRequest(res, 'Não é possível excluir: há relacionamentos. Considere exclusão lógica com campo *_ativo.');
+      }
+    } catch (error) {
+      sendError(res, error);
+    }
+  }
 
-                    const values = [amen_variedade, amen_tamanho, amen_outras_caracteristicas];
-
-                    const [result] = await db.query(sql, values);
-
-                    const dados = {
-                        inf_id: result.insertId,
-                        amen_variedade, 
-                        amen_tamanho,
-                         amen_outras_caracteristicas
-                    };
-
-
-
-            return response.status(200).json({
-                sucesso: true, 
-                mensagem: 'Cadastro de Amendoins', 
-                dados: dados
-            });
-        } catch (error) {
-            return response.status(500).json({
-                sucesso: false, 
-                mensagem: 'Erro na requisição.', 
-                dados: error.message
-            });
-        }
-    }, 
-    async editarAmendoins(request, response) {
-        try {
-
-            const { amen_variedade, amen_tamanho, amen_outras_caracteristicas } = request.body;
-
-            const { id } = request.params;
-
-            const sql = `
-                UPDATE AMENDOINS SET
-                    amen_variedade = ?, amen_tamanho = ?, amen_outras_caracteristicas = ?
-                WHERE
-                    amen_id = ?;
-            `;
-
-            const values = [ amen_variedade, amen_tamanho, amen_outras_caracteristicas, id ];
-
-            const [result] = await db.query(sql, values);
-
-            if(result.affectedRows === 0) {
-                return response.status(404).json({
-                    sucesso: false,
-                    mensagem: `Usuário ${id} não encontrado!`,
-                    dados: null
-                })
-            }
-
-            const dados = {
-                id,
-                amen_variedade, 
-                amen_tamanho,
-                 amen_outras_caracteristicas
-            };
-
-            return response.status(200).json({
-                sucesso: true, 
-                mensagem: `Usuário ${id} atualizado com sucesso!`, 
-                dados
-            });
-        } catch (error) {
-            return response.status(500).json({
-                sucesso: false, 
-                mensagem: 'Erro na requisição.', 
-                dados: error.message
-            });
-
-        }
-    }, 
-    async apagarAmendoins(request, response) {
-        try {
-
-            const { id } = request.params;
-
-            const sql = `DELETE FROM AMENDOINS WHERE amen_id = ?`;
-
-            const values = [id];
-
-            const [result] = await db.query(sql, values);
-
-            if(result.affectedRows === 0) {
-                return response.status(404).json({
-                    sucesso: false,
-                    mensagem: `Amendoim ${amen_id} não encontrado!`,
-                    dados: null
-                })
-            }
-
-            return response.status(200).json({
-                sucesso: true, 
-                mensagem: `Amendoim ${id} excluído com sucesso`, 
-                dados: null
-            });
-        } catch (error) {
-            return response.status(500).json({
-                sucesso: false, 
-                mensagem: 'Erro na requisição.', 
-                dados: error.message
-            });
-        }
-    }, 
-};  
+};
