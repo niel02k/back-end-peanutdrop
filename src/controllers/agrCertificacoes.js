@@ -121,7 +121,7 @@ module.exports = {
     }
   },
 
-  ,// PATCH /agrCertificacoes/:id  - Atualiza **apenas atributos**; não troque o vínculo N:N aqui.
+// PATCH /agrCertificacoes/:id  - Atualiza **apenas atributos**; não troque o vínculo N:N aqui.
   async editarAgrCertAtributos(req, res) {
     try {
       const { id } = req.params;
