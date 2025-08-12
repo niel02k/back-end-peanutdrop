@@ -16,6 +16,7 @@ router.post('/Amendoins', AmendoinsController.cadastrarAmendoins);
 router.patch('/Amendoins/:id', AmendoinsController.editarAmendoins); 
 router.delete('/Amendoins/:id', AmendoinsController.apagarAmendoins); 
 
+router.get('/ofertas/destaques', OfertasController.listarDestaques);
 router.get('/Ofertas', OfertasController.listarOfertas); 
 router.post('/Ofertas', OfertasController.cadastrarOfertas); 
 router.patch('/Ofertas/:id', OfertasController.editarOfertas); 
