@@ -121,7 +121,7 @@ module.exports = {
     }
   },
 
-  ,// GET /ofertas/destaques  -> 3 itens aleatórios (promoções/destaques)
+  // GET /ofertas/destaques  -> 3 itens aleatórios (promoções/destaques)
   async listarDestaques(req, res) {
     try {
       const [rows] = await db.query(
