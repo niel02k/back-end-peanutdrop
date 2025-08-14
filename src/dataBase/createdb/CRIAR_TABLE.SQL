@@ -67,6 +67,7 @@ CREATE TABLE DEMANDAS (
     demanda_ativa BIT,
     FOREIGN KEY (emp_id) REFERENCES EMPRESAS(emp_id),
     FOREIGN KEY (amen_id) REFERENCES AMENDOINS(amen_id)
+    
 );
 
 CREATE TABLE AGR_CERTIFICACOES (

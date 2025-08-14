@@ -21,6 +21,7 @@ function pickFilters(query, allowed) {
     }
   }
   return { where, values };
+  
 }
 
 function sendOk(res, mensagem, dados) {
