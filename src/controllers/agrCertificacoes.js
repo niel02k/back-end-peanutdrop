@@ -21,6 +21,7 @@ module.exports = {
 
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 // PATCH /agrCertificacoes/:id  - Atualiza **apenas atributos**; não troque o vínculo N:N aqui.
   async editarAgrCertAtributos(req, res) {
     try {
@@ -28,6 +29,8 @@ module.exports = {
       const [check] = await db.query('SELECT agc_id FROM agr_certificacoes WHERE agc_id = ?', [id]);
       if (!check.length) return sendNotFound(res);
 =======
+=======
+>>>>>>> parent of 7cdc967 (a)
             return response.status(200).json({
                 sucesso: true, 
                 mensagem: 'Lista de certificacoes', 
@@ -53,6 +56,9 @@ module.exports = {
                
                `;
                     const values = [agri_id, cert_id, agr_local, agr_data, agr_arquivo, agr_status];
+<<<<<<< HEAD
+>>>>>>> parent of 7cdc967 (a)
+=======
 >>>>>>> parent of 7cdc967 (a)
 
                     const [result] = await db.query(sql, values);

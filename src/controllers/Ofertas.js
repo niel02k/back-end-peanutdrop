@@ -45,6 +45,7 @@ module.exports = {
                     `;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   // GET /ofertas/destaques  -> 3 itens aleatórios (promoções/destaques)
   async listarDestaques(req, res) {
     try {
@@ -56,6 +57,9 @@ module.exports = {
       sendError(res, error);
     }
   }
+=======
+                    const values = [agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa];
+>>>>>>> parent of 7cdc967 (a)
 =======
                     const values = [agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa];
 >>>>>>> parent of 7cdc967 (a)

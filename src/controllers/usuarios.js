@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 // Controllers atualizados conforme Apostilas 004 (Consultas) e 005 (Validações)
 // Padrões aplicados: filtros por query, paginação, JOINs (quando indicado), tratamento de BIT, try/catch, status HTTP consistentes.
 // Observação: ajuste nomes de tabelas/colunas conforme seu schema real.
@@ -46,6 +47,10 @@ function sendError(res, error) {
   res.status(500).json({ sucesso: false, mensagem: 'Erro na requisição.', dados: error.message, itens: 0 });
 }
 const bcrypt = require('bcrypt'); // Apostila 005 - criptografia de senha
+=======
+const db = require("../dataBase/connection");
+const mensagem = require("./mensagem");
+>>>>>>> parent of 7cdc967 (a)
 =======
 const db = require("../dataBase/connection");
 const mensagem = require("./mensagem");
