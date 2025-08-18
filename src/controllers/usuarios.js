@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Controllers atualizados conforme Apostilas 004 (Consultas) e 005 (Validações)
 // Padrões aplicados: filtros por query, paginação, JOINs (quando indicado), tratamento de BIT, try/catch, status HTTP consistentes.
 // Observação: ajuste nomes de tabelas/colunas conforme seu schema real.
@@ -45,123 +46,211 @@ function sendError(res, error) {
   res.status(500).json({ sucesso: false, mensagem: 'Erro na requisição.', dados: error.message, itens: 0 });
 }
 const bcrypt = require('bcrypt'); // Apostila 005 - criptografia de senha
+=======
+const db = require("../dataBase/connection");
+const mensagem = require("./mensagem");
+>>>>>>> parent of 7cdc967 (a)
 
 module.exports = {
-  // GET /usuarios
-  async listarUsuarios(req, res) {
+  async listarUsuarios(request, response) {
     try {
-      const { page, limit, offset } = buildPagination(req.query);
-      const { where, values } = pickFilters(req.query, ['usu_nome', 'usu_email']);
-      const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
-      const sql = `SELECT usu_id, usu_nome, usu_email, CAST(usu_ativo AS UNSIGNED) AS usu_ativo
-                   FROM usuarios
-                   ${whereSql}
-                   ORDER BY usu_id DESC
-                   LIMIT ? OFFSET ?`;
-      const [rows] = await db.query(sql, [...values, limit, offset]);
-      sendOk(res, 'Lista de usuários.', rows);
+      const sql = `SELECT usu_id,usu_tipo_usuario,usu_nome,usu_documento,usu_email, usu_senha,usu_endereco,usu_telefone ,usu_data_cadastro FROM USUARIOS;`;
+
+      const [rows] = await db.query(sql);
+      const nRegistros = rows.length;
+
+      return response.status(200).json({
+        sucesso: true,
+        mensagem: "Lista de usuários",
+        nRegistros,
+        dados: rows,
+      });
     } catch (error) {
-      sendError(res, error);
+      return response.status(500).json({
+        sucesso: false,
+        mensagem: "Erro na requisição.",
+        dados: error.message,
+      });
     }
   },
-
-  // POST /usuarios
-  async cadastrarUsuarios(req, res) {
+  async cadastrarUsuarios(request, response) {
     try {
-      const { usu_nome, usu_email, usu_senha } = req.body;
-      if (!usu_nome || !usu_email || !usu_senha) return sendBadRequest(res, 'Nome, e-mail e senha são obrigatórios.');
+      const {
+        usu_tipo_usuario,
+        usu_nome,
+        usu_documento,
+        usu_email,
+        usu_senha,
+        usu_endereco,
+        usu_telefone,
+        usu_data_cadastro,
+      } = request.body;
 
-      const [exists] = await db.query('SELECT usu_id FROM usuarios WHERE usu_email = ?', [usu_email]);
-      if (exists.length) return sendBadRequest(res, 'E-mail já cadastrado.');
+      const sql = `
+                        INSERT INTO USUARIOS 
+                        (usu_tipo_usuario, usu_nome, usu_documento, usu_email, usu_senha, usu_endereco, usu_telefone, usu_data_cadastro) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                    `;
 
-      const salt = await bcrypt.genSalt(10);
-      const hash = await bcrypt.hash(usu_senha, salt);
+      const values = [
+        usu_tipo_usuario,
+        usu_nome,
+        usu_documento,
+        usu_email,
+        usu_senha,
+        usu_endereco,
+        usu_telefone,
+        usu_data_cadastro,
+      ];
 
-      const [result] = await db.query(
-        'INSERT INTO usuarios (usu_nome, usu_email, usu_senha, usu_ativo) VALUES (?,?,?,1)',
-        [usu_nome, usu_email, hash]
-      );
-      sendCreated(res, 'Usuário cadastrado.', { id: result.insertId });
-    } catch (error) {
-      sendError(res, error);
-    }
-  },
-
-  // PATCH /usuarios/:id
-  async editarUsuarios(req, res) {
-    try {
-      const { id } = req.params;
-      const [check] = await db.query('SELECT usu_id FROM usuarios WHERE usu_id = ?', [id]);
-      if (!check.length) return sendNotFound(res);
-
-      const fields = [];
-      const values = [];
-      const allowed = ['usu_nome', 'usu_email'];
-
-      for (const key of allowed) {
-        if (req.body[key] !== undefined) {
-          fields.push(`${key} = ?`);
-          values.push(req.body[key]);
-        }
-      }
-
-      if (req.body.usu_senha) {
-        const salt = await bcrypt.genSalt(10);
-        const hash = await bcrypt.hash(req.body.usu_senha, salt);
-        fields.push('usu_senha = ?');
-        values.push(hash);
-      }
-
-      if (!fields.length) return sendBadRequest(res, 'Nenhum campo para atualizar.');
-
-      const sql = `UPDATE usuarios SET ${fields.join(', ')} WHERE usu_id = ?`;
-      values.push(id);
       const [result] = await db.query(sql, values);
-      sendOk(res, 'Usuário atualizado.', { id, linhas_afetadas: result.affectedRows });
+
+      const dados = {
+        id: result.insertId,
+        nome: usu_nome,
+        email: usu_email,
+        tipo: usu_tipo_usuario,
+      };
+      return response.status(200).json({
+        sucesso: true,
+        mensagem: "Cadastro de usuários",
+        dados: dados,
+      });
     } catch (error) {
-      sendError(res, error);
+      return response.status(500).json({
+        sucesso: false,
+        mensagem: "Erro na requisição.",
+        dados: error.message,
+      });
     }
   },
-
-  // DELETE /usuarios/:id
-  async apagarUsuarios(req, res) {
+  async editarUsuarios(request, response) {
     try {
-      const { id } = req.params;
-      const [check] = await db.query('SELECT usu_id FROM usuarios WHERE usu_id = ?', [id]);
-      if (!check.length) return sendNotFound(res);
+      const { id } = request.params;
+      const { nome, email, senha, endereco, telefone } = request.body;
 
-      try {
-        const [r] = await db.query('DELETE FROM usuarios WHERE usu_id = ?', [id]);
-        if (!r.affectedRows) return sendNotFound(res);
-        sendOk(res, 'Usuário excluído.', { id });
-      } catch (e) {
-        return sendBadRequest(res, 'Não é possível excluir: há relacionamentos. Considere exclusão lógica (usu_ativo=0).');
+      const sql = `
+                UPDATE USUARIOS 
+                SET 
+                    usu_nome = ?, 
+                    usu_email = ?, 
+                    usu_senha = ?, 
+                    usu_endereco = ?, 
+                    usu_telefone = ?
+                WHERE usu_id = ?
+            `;
+
+      const values = [nome, email, senha, endereco, telefone, id];
+
+      const [result] = await db.query(sql, values);
+
+      if (result.affectedRows === 0) {
+        return response.status(404).json({
+          sucesso: false,
+          mensagem: "Usuário não encontrado para atualização.",
+          dados: null,
+        });
       }
+
+      const dados = {
+        id,
+        nome,
+        email,
+        telefone,
+        endereco,
+        senha,
+      };
+
+      return response.status(200).json({
+        sucesso: true,
+        mensagem: `Usuário ${id} atualizado com sucesso`,
+        dados,
+      });
     } catch (error) {
-      sendError(res, error);
+      return response.status(500).json({
+        sucesso: false,
+        mensagem: "Erro na requisição.",
+        dados: error.message,
+      });
+    }
+  },
+  async apagarUsuarios(request, response) {
+    try {
+      const { id } = request.params;
+
+      const sql = `DELETE FROM usuarios WHERE usu_id = ?`;
+
+      const values = [id];
+
+      const [result] = await db.query(sql, values);
+
+      if (result.affectedRows === 0) {
+        return response.status(404).json({
+          sucesso: false,
+          mensagem: `Usario ${id} não encontrado `,
+          dados: null,
+        });
+      }
+
+      return response.status(200).json({
+        sucesso: true,
+        mensagem: `Usario ${id} excluido com sucesso `,
+        dados: null,
+      });
+    } catch (error) {
+      return response.status(500).json({
+        sucesso: false,
+        mensagem: "Erro na requisição.",
+        dados: error.message,
+      });
     }
   },
 
-  // POST /login
-  async login(req, res) {
+  
+  async login(request, response) {
     try {
-      const { email, senha } = req.body;
-      if (!email || !senha) return sendBadRequest(res, 'E-mail e senha são obrigatórios.');
+      const { senha, email, tipo } = request.query;
 
-      const [rows] = await db.query(
-        'SELECT usu_id, usu_nome, usu_email, usu_senha, CAST(usu_ativo AS UNSIGNED) AS usu_ativo FROM usuarios WHERE usu_email = ? LIMIT 1',
-        [email]
-      );
-      if (!rows.length) return sendBadRequest(res, 'Credenciais inválidas.');
+      const sql = `
+                SELECT
+                    usu_id, usu_nome, usu_tipo_usuario
+                FROM
+                    USUARIOS
+                WHERE
+                    usu_email = ? AND usu_senha = ? AND usu_tipo_usuario = ?;
+            `;
 
-      const user = rows[0];
-      const confere = await bcrypt.compare(senha, user.usu_senha);
-      if (!confere) return sendBadRequest(res, 'Credenciais inválidas.');
+        const values = [email, senha, tipo];
 
-      delete user.usu_senha;
-      sendOk(res, 'Login efetuado.', user);
+        const [rows] = await db.query(sql, values);
+        const nItens = rows.length;
+
+        if (nItens < 1) {
+        return response.status(404).json({
+            sucesso: false,
+            mensagem : "Usuário não encontrado ou senha incorreta.",
+            dados: null,
+        });
+        }
+
+        const dados = rows.map(usuario => ({
+            id: usuario.usu_id,
+            nome: usuario.usu_nome,
+            tipo: usuario.usu_tipo_usuario,
+        })
+        )
+
+      return response.status(200).json({
+        sucesso: true,
+        mensagem: "Login realizado com sucesso",
+        dados
+      });
     } catch (error) {
-      sendError(res, error);
+      return response.status(500).json({
+        sucesso: false,
+        mensagem: "Erro na requisição.",
+        dados: error.message,
+      });
     }
-  }
+  },
 };
