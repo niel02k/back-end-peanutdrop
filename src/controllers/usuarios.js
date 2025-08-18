@@ -203,6 +203,68 @@ module.exports = {
       });
     }
   },
+  
 
-  // Fazer índice em usu_email (login) e usu_nome (busca) para melhorar performance de consulta
+  async listarUsuariosFiltro (request, response) { 
+    try {
+    // 1) Lê filtros / paginação
+    const { usu_nome, usu_email } = req.query;     // filtros (parâmetros)
+    const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
+    const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
+    const offset = (page - 1) * limit;
+
+    // 2) WHERE dinâmico (só entra se veio o parâmetro)
+    const where = [];
+    const values = [];
+
+    if (usu_nome && usu_nome.trim() !== '') {
+      where.push('u.usu_nome LIKE ?');
+      values.push(`%${usu_nome}%`);
+    }
+    if (usu_email && usu_email.trim() !== '') {
+      where.push('u.usu_email LIKE ?');
+      values.push(`%${usu_email}%`);
+    }
+
+    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+    // 3) SELECT paginado (com CAST de BIT e campos “tratados”)
+    const sql = `
+      SELECT
+        u.usu_id   AS id,
+        u.usu_nome AS nome,
+        u.usu_email AS email,
+        CAST(u.usu_ativo AS UNSIGNED) AS ativo
+      FROM usuarios u
+      ${whereSql}
+      ORDER BY u.usu_id DESC
+      LIMIT ? OFFSET ?
+    `;
+
+    // 4) COUNT total (mesmos filtros)
+    const sqlCount = `
+      SELECT COUNT(*) AS total
+      FROM usuarios u
+      ${whereSql}
+    `;
+
+    // Empilha paginação no final dos values (mesmos values servem pro COUNT)
+    const [rows]   = await db.query(sql,      [...values, limit, offset]);
+    const [countR] = await db.query(sqlCount, values);
+    const total = countR[0]?.total || 0;
+
+    // 5) Retorno padronizado
+    return res.status(200).json({
+      sucesso: true,
+      mensagem: 'Lista de usuários',
+      pagina: page,
+      limite: limit,
+      total,           // total de itens que batem o filtro
+      itens: rows.length,
+      dados: rows
+    });
+  } catch (error) {
+    return res.status(500).json({ sucesso: false, mensagem: 'Erro ao listar usuários', dados: error.message });
+  }
+}
 };
