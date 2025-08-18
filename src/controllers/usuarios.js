@@ -203,4 +203,6 @@ module.exports = {
       });
     }
   },
+
+  // Fazer índice em usu_email (login) e usu_nome (busca) para melhorar performance de consulta
 };
