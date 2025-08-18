@@ -1,25 +1,25 @@
 const express = require('express'); 
 const router = express.Router(); 
 
-const contratosController = require('../controllers/contratos'); 
-const notas_fiscaisController = require ('../controllers/notas_fiscais'); 
-const pagamentosController = require ('../controllers/pagamentos'); 
+const ContratosController = require('../controllers/Contratos'); 
+const Notas_fiscaisController = require ('../controllers/Notas_fiscais'); 
+const PagamentosController = require ('../controllers/Pagamentos'); 
 
-router.get('/contratos', contratosController.listarContratos); 
-router.post('/contratos', contratosController.cadastrarContratos); 
-router.patch('/contratos/:id', contratosController.editarContratos); 
-router.delete('/contratos/:id', contratosController. apagarContratos); 
+router.get('/Contratos', ContratosController.listarContratos); 
+router.post('/Contratos', ContratosController.cadastrarContratos); 
+router.patch('/Contratos/:id', ContratosController.editarContratos); 
+router.delete('/Contratos/:id', ContratosController. apagarContratos); 
 
-router.get('/notas_fiscais', notas_fiscaisController.listarNotas_fiscais); 
-router.post('/notas_fiscais', notas_fiscaisController.cadastrarNotas_fiscais); 
-router.patch('/notas_fiscais/:id', notas_fiscaisController.editarNotas_fiscais); 
-router.delete('/notas_fiscais/:id',notas_fiscaisController.apagarNotas_fiscais); 
+router.get('/Notas_fiscais', Notas_fiscaisController.listarNotas_fiscais); 
+router.post('/Notas_fiscais', Notas_fiscaisController.cadastrarNotas_fiscais); 
+router.patch('/Notas_fiscais/:id', Notas_fiscaisController.editarNotas_fiscais); 
+router.delete('/Notas_fiscais/:id',Notas_fiscaisController.apagarNotas_fiscais); 
 
 
-router.get('/pagamentos',   pagamentosController.listarPagamentos); 
-router.post('/pagamentos', pagamentosController.cadastrarPagamentos); 
-router.patch('/pagamentos/:id', pagamentosController.editarPagamentos); 
-router.delete('/pagamentos/:id',pagamentosController.apagarPagamentos); 
+router.get('/Pagamentos',   PagamentosController.listarPagamentos); 
+router.post('/Pagamentos', PagamentosController.cadastrarPagamentos); 
+router.patch('/Pagamentos/:id', PagamentosController.editarPagamentos); 
+router.delete('/Pagamentos/:id',PagamentosController.apagarPagamentos); 
 
 
 

@@ -5,20 +5,20 @@ const EmpresasController = require('../controllers/Empresas');
 const DemandasController = require('../controllers/Demandas'); 
 const PropostasController = require('../controllers/Propostas'); 
 
-router.get('/empresas', EmpresasController.listarEmpresas); 
-router.post('/empresas', EmpresasController.cadastrarEmpresas); 
-router.patch('/empresas/:id', EmpresasController.editarEmpresas); 
-router.delete('/empresas/:id', EmpresasController.apagarEmpresas); 
+router.get('/Empresas', EmpresasController.listarEmpresas); 
+router.post('/Empresas', EmpresasController.cadastrarEmpresas); 
+router.patch('/Empresas/:id', EmpresasController.editarEmpresas); 
+router.delete('/Empresas/:id', EmpresasController.apagarEmpresas); 
 
-router.get('/demandas', DemandasController.listarDemandas); 
-router.post('/demandas', DemandasController.cadastrarDemandas); 
-router.patch('/demandas/:id', DemandasController.editarDemandas); 
-router.delete('/demandas/:id', DemandasController.apagarDemandas); 
+router.get('/Demandas', DemandasController.listarDemandas); 
+router.post('/Demandas', DemandasController.cadastrarDemandas); 
+router.patch('/Demandas/:id', DemandasController.editarDemandas); 
+router.delete('/Demandas/:id', DemandasController.apagarDemandas); 
 
-router.get('/propostas', PropostasController.listarPropostas); 
-router.post('/propostas', PropostasController.cadastrarPropostas); 
-router.patch('/propostas/:id', PropostasController.editarPropostas); 
-router.delete('/propostas/:id', PropostasController.apagarPropostas);
+router.get('/Propostas', PropostasController.listarPropostas); 
+router.post('/Propostas', PropostasController.cadastrarPropostas); 
+router.patch('/Propostas/:id', PropostasController.editarPropostas); 
+router.delete('/Propostas/:id', PropostasController.apagarPropostas);
 
 
 

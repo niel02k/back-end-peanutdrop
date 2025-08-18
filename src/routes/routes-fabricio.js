@@ -1,24 +1,24 @@
 const express = require('express'); 
 const router = express.Router(); 
 
-const certificacoesController = require('../controllers/certificacoes');
-const rastreamento_producaoController = require('../controllers/rastreamento_producao');
-const agrCertificacoesController = require('../controllers/agrCertificacoes');
+const CertificacoesController = require('../controllers/Certificacoes');
+const RastreamentoController = require('../controllers/Rastreamento');
+const Agr_cetificacoesController = require('../controllers/Agr_cetificacoes');
 
 
-router.get('/certificacoes', certificacoesController.listarCertificacoes); 
-router.post('/certificacoes', certificacoesController.cadastrarCertificacoes); 
-router.patch('/certificacoes/:id', certificacoesController.editarCertificacoes); 
-router.delete('/certificacoes/:id', certificacoesController.apagarCertificacoes); 
+router.get('/Certificacoes', CertificacoesController.listarCertificacoes); 
+router.post('/Certificacoes', CertificacoesController.cadastrarCertificacoes); 
+router.patch('/Certificacoes/:id', CertificacoesController.editarCertificacoes); 
+router.delete('/Certificacoes/:id', CertificacoesController.apagarCertificacoes); 
 
-router.get('/rastreamento_producao', rastreamento_producaoController.listarRastreamento_producao); 
-router.post('/rastreamento_producao', rastreamento_producaoController.cadastrarRastreamento_producao); 
-router.patch('/rastreamento_producao/:id', rastreamento_producaoController.editarRastreamento_producao); 
-router.delete('/rastreamento_producao/:id', rastreamento_producaoController.apagarRastreamento_producao); 
+router.get('/Rastreamento', RastreamentoController.listarRastreamento); 
+router.post('/Rastreamento', RastreamentoController.cadastrarRastreamento); 
+router.patch('/Rastreamento/:id', RastreamentoController.editarRastreamento); 
+router.delete('/Rastreamento/:id', RastreamentoController.apagarRastreamento); 
 
-router.get('/agrCertificacoes', agrCertificacoesController.listarAgrcertificacoes); 
-router.post('/agrCertificacoes', agrCertificacoesController.cadastrarAgrcertificacoes); 
-router.patch('/agrCertificacoes/:id', agrCertificacoesController.editarAgrCertAtributos); 
-router.delete('/agrCertificacoes/:id',agrCertificacoesController.apagarAgrcertificacoes); 
+router.get('/Agr_cetificacoes', Agr_cetificacoesController.listarAgr_cetificacoes); 
+router.post('/Agr_cetificacoes', Agr_cetificacoesController.cadastrarAgr_cetificacoes); 
+router.patch('/Agr_cetificacoes/:id', Agr_cetificacoesController.editarAgrCertAtributos); 
+router.delete('/Agr_cetificacoes/:id',Agr_cetificacoesController.apagarAgr_cetificacoes); 
 
 module.exports = router;

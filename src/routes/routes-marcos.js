@@ -2,25 +2,25 @@
 const express = require('express'); 
 const router = express.Router(); 
 
-const negociacoesController = require('../controllers/negociacoes'); 
-const mensagemsController = require('../controllers/mensagem'); 
-const usuariosController = require('../controllers/usuarios'); 
+const NegociacoesController = require('../controllers/Negociacoes'); 
+const MensagemsController = require('../controllers/Mensagem'); 
+const UsuariosController = require('../controllers/Usuarios'); 
 
-router.get('/usuarios', usuariosController.listarUsuarios); 
-router.post('/usuarios', usuariosController.cadastrarUsuarios); 
-router.patch('/usuarios/:id', usuariosController.editarUsuarios); 
-router.delete('/usuarios/:id', usuariosController.apagarUsuarios);
-router.get('/login', usuariosController.login); 
+router.get('/Usuarios', UsuariosController.listarUsuarios); 
+router.post('/Usuarios', UsuariosController.cadastrarUsuarios); 
+router.patch('/Usuarios/:id', UsuariosController.editarUsuarios); 
+router.delete('/Usuarios/:id', UsuariosController.apagarUsuarios);
+router.get('/login', UsuariosController.login); 
 
 
-router.get('/negociacoes', negociacoesController.listarNegociacoes); 
-router.post('/negociacoes', negociacoesController.cadastrarNegociacoes); 
-router.patch('/negociacoes/:id', negociacoesController.editarNegociacoes); 
-router.delete('/negociacoes/:id', negociacoesController.apagarNegociacoes); 
+router.get('/Negociacoes', NegociacoesController.listarNegociacoes); 
+router.post('/Negociacoes', NegociacoesController.cadastrarNegociacoes); 
+router.patch('/Negociacoes/:id', NegociacoesController.editarNegociacoes); 
+router.delete('/Negociacoes/:id', NegociacoesController.apagarNegociacoes); 
 
-router.get('/mensagem', mensagemsController.listarMensagem); 
-router.post('/mensagem', mensagemsController.cadastrarMensagem); 
-router.patch('/mensagem/:id', mensagemsController.editarMensagem); 
-router.delete('/mensagem/:id', mensagemsController.apagarMensagem); 
+router.get('/Mensagem', MensagemsController.listarMensagem); 
+router.post('/Mensagem', MensagemsController.cadastrarMensagem); 
+router.patch('/Mensagem/:id', MensagemsController.editarMensagem); 
+router.delete('/Mensagem/:id', MensagemsController.apagarMensagem); 
 
 module.exports = router;
