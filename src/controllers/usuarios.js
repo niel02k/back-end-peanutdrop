@@ -205,7 +205,7 @@ module.exports = {
   },
   
 
-  async listarUsuariosFiltro (request, response) { 
+  async listarUsuariosFiltro (req, res) { 
     try {
     // 1) Lê filtros / paginação
     const { usu_nome, usu_email } = req.query;     // filtros (parâmetros)
@@ -233,8 +233,7 @@ module.exports = {
       SELECT
         u.usu_id   AS id,
         u.usu_nome AS nome,
-        u.usu_email AS email,
-        CAST(u.usu_ativo AS UNSIGNED) AS ativo
+        u.usu_email AS email
       FROM usuarios u
       ${whereSql}
       ORDER BY u.usu_id DESC
@@ -266,5 +265,5 @@ module.exports = {
   } catch (error) {
     return res.status(500).json({ sucesso: false, mensagem: 'Erro ao listar usuários', dados: error.message });
   }
-}
+  }
 };

@@ -1,7 +1,7 @@
 const db = require('../dataBase/connection'); 
 
 module.exports = {
-    async listarAgr_certificacoes(request, response) {
+    async listarAgrcertificacoes(request, response) {
         try {
 
              const sql = `SELECT
@@ -34,7 +34,7 @@ module.exports = {
             });
         }
     }, 
-    async cadastrarAgr_certificacoes(request, response) {
+    async cadastrarAgrcertificacoes(request, response) {
         try {
             const { agri_id, cert_id, agr_local, agr_data, agr_arquivo, agr_status } = request.body;
             
@@ -72,7 +72,7 @@ module.exports = {
             });
         }
     }, 
-    async editarAgr_certificacoes(request, response) {
+    async editarAgrcertificacoes(request, response) {
         try {
             const { agri_id, cert_id, agr_local, agr_data, agr_arquivo, agr_status } = request.body;
 
@@ -123,7 +123,7 @@ module.exports = {
 
         }
     }, 
-    async apagarAgr_certificacoes(request, response) {
+    async apagarAgrcertificacoes(request, response) {
         try {
             const ativo = false;
     
