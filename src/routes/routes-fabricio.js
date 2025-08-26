@@ -15,6 +15,7 @@ router.get('/Rastreamento', RastreamentoController.listarRastreamento);
 router.post('/Rastreamento', RastreamentoController.cadastrarRastreamento); 
 router.patch('/Rastreamento/:id', RastreamentoController.editarRastreamento); 
 router.delete('/Rastreamento/:id', RastreamentoController.apagarRastreamento); 
+router.get('/Rastreamento', RastreamentoController.listarRastreamentoFiltro)
 
 router.get('/Agr_cetificacoes', AgrcertificacoesController.listarAgrcertificacoes ); 
 router.post('/Agr_cetificacoes', AgrcertificacoesController.cadastrarAgrcertificacoes ); 
