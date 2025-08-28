@@ -134,5 +134,78 @@ module.exports = {
             });
         }
     },
-    
-};  
+
+    async listarPropostasFiltro(req, res) {
+  try {
+    // 1) Lê filtros e paginação
+    const { pro_status, pro_observacao, ofe_titulo } = req.query;
+    const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
+    const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
+    const offset = (page - 1) * limit;
+
+    // 2) WHERE dinâmico
+    const where = [];
+    const values = [];
+
+    if (pro_status && pro_status.trim() !== '') {
+      where.push('p.pro_status LIKE ?');
+      values.push(`%${pro_status}%`);
+    }
+    if (pro_observacao && pro_observacao.trim() !== '') {
+      where.push('p.pro_observacao LIKE ?');
+      values.push(`%${pro_observacao}%`);
+    }
+    if (ofe_titulo && ofe_titulo.trim() !== '') {
+      where.push('o.ofe_titulo LIKE ?');
+      values.push(`%${ofe_titulo}%`);
+    }
+
+    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+    // 3) SELECT com JOIN + CAST
+    const sql = `
+      SELECT
+        p.pro_id        AS id,
+        p.pro_status    AS status,
+        p.pro_observacao AS observacao,
+        CAST(p.pro_ativa AS UNSIGNED) AS ativa,
+        p.pro_ofe_id    AS oferta_id,
+        o.ofe_titulo    AS oferta_titulo
+      FROM propostas p
+      INNER JOIN ofertas o ON o.ofe_id = p.pro_ofe_id
+      ${whereSql}
+      ORDER BY p.pro_id DESC
+      LIMIT ? OFFSET ?
+    `;
+
+    // 4) COUNT total
+    const sqlCount = `
+      SELECT COUNT(*) AS total
+      FROM propostas p
+      INNER JOIN ofertas o ON o.ofe_id = p.pro_ofe_id
+      ${whereSql}
+    `;
+
+    const [rows]   = await db.query(sql, [...values, limit, offset]);
+    const [countR] = await db.query(sqlCount, values);
+    const total = countR[0]?.total || 0;
+
+    // 5) Retorno padronizado
+    return res.status(200).json({
+      sucesso: true,
+      mensagem: 'Lista de propostas',
+      pagina: page,
+      limite: limit,
+      total,
+      itens: rows.length,
+      dados: rows
+    });
+  } catch (error) {
+    return res.status(500).json({
+      sucesso: false,
+      mensagem: 'Erro ao listar propostas',
+      dados: error.message
+    });
+  }
+},
+}

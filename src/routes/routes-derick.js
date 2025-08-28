@@ -19,6 +19,7 @@ router.get('/Propostas', PropostasController.listarPropostas);
 router.post('/Propostas', PropostasController.cadastrarPropostas); 
 router.patch('/Propostas/:id', PropostasController.editarPropostas); 
 router.delete('/Propostas/:id', PropostasController.apagarPropostas);
+router.get('/Propostas', PropostasController.listarPropostasFiltro);
 
 
 

@@ -20,6 +20,7 @@ router.get('/Pagamentos',   PagamentosController.listarPagamentos);
 router.post('/Pagamentos', PagamentosController.cadastrarPagamentos); 
 router.patch('/Pagamentos/:id', PagamentosController.editarPagamentos); 
 router.delete('/Pagamentos/:id',PagamentosController.apagarPagamentos); 
+router.get('/Pagamentos', PagamentosController.listarPagamentosFiltro);
 
 
 

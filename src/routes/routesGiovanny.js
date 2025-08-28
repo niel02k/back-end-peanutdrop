@@ -19,7 +19,9 @@ router.delete('/Amendoins/:id', AmendoinsController.apagarAmendoins);
 router.get('/Ofertas', OfertasController.listarOfertas); 
 router.post('/Ofertas', OfertasController.cadastrarOfertas); 
 router.patch('/Ofertas/:id', OfertasController.editarOfertas); 
-router.delete('/Ofertas/:id', OfertasController.apagarOfertas); 
+router.delete('/Ofertas/:id', OfertasController.apagarOfertas);
+router.get('/Ofertas', OfertasController.listarOfertasFiltro);
+router.get('/Ofertas', OfertasController.listarDestaques); 
 
 
 module.exports = router;

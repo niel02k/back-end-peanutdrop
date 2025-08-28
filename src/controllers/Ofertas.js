@@ -158,4 +158,110 @@ module.exports = {
         }
 
     }, 
+
+    async listarOfertasFiltro(req, res) {
+    try {
+      // 1) Ler filtros e paginação
+      const { ofe_titulo, ofe_descricao, promocao, ativo } = req.query;
+
+      const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
+      const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
+      const offset = (page - 1) * limit;
+
+      // 2) Montagem do WHERE dinâmico
+      const where = [];
+      const values = [];
+
+      if (ofe_titulo && ofe_titulo.trim() !== '') {
+        where.push('o.ofe_titulo LIKE ?');
+        values.push(`%${ofe_titulo}%`);
+      }
+      if (ofe_descricao && ofe_descricao.trim() !== '') {
+        where.push('o.ofe_descricao LIKE ?');
+        values.push(`%${ofe_descricao}%`);
+      }
+      // flags opcionais (0/1); aceita "0" e "1" como string
+      if (promocao !== undefined && promocao !== '') {
+        where.push('(o.ofe_promocao + 0) = ?');
+        values.push(Number(promocao) ? 1 : 0);
+      }
+      if (ativo !== undefined && ativo !== '') {
+        where.push('(o.ofe_ativo + 0) = ?');
+        values.push(Number(ativo) ? 1 : 0);
+      }
+
+      const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+      // 3) SELECT paginado (com CAST de BIT -> 0/1)
+      const selectSql =
+        'SELECT ' +
+        '  o.ofe_id        AS id, ' +
+        '  o.ofe_titulo    AS titulo, ' +
+        '  o.ofe_descricao AS descricao, ' +
+        '  (o.ofe_promocao + 0) AS promocao, ' + // BIT -> 0/1
+        '  (o.ofe_ativo + 0)    AS ativo ' +
+        'FROM OFERTA o ' + // troque para "ofertas" se esse for seu nome de tabela
+        whereSql +
+        ' ORDER BY o.ofe_id DESC ' +
+        'LIMIT ? OFFSET ?';
+
+      // 4) COUNT total com os mesmos filtros
+      const countSql =
+        'SELECT COUNT(*) AS total ' +
+        'FROM OFERTA o ' +
+        whereSql;
+
+      const [rows]   = await db.query(selectSql, [...values, limit, offset]);
+      const [countR] = await db.query(countSql, values);
+      const total = countR[0]?.total || 0;
+
+      // 5) Resposta padronizada
+      return res.status(200).json({
+        sucesso: true,
+        mensagem: 'Lista de ofertas',
+        pagina: page,
+        limite: limit,
+        total,
+        itens: rows.length,
+        dados: rows
+      });
+    } catch (error) {
+      return res.status(500).json({
+        sucesso: false,
+        mensagem: 'Erro ao listar ofertas',
+        dados: error.message
+      });
+    }
+  },
+
+async listarDestaques(req, res) {
+    try {
+      const sql =
+        'SELECT ' +
+        '  o.ofe_id        AS id, ' +
+        '  o.ofe_titulo    AS titulo, ' +
+        '  o.ofe_descricao AS descricao, ' +
+        '  (o.ofe_promocao + 0) AS promocao ' +
+        'FROM OFERTA o ' +
+        'WHERE (o.ofe_promocao + 0) = 1 ' +
+        'ORDER BY RAND() ' +
+        'LIMIT 3';
+
+      const [rows] = await db.query(sql);
+
+      return res.status(200).json({
+        sucesso: true,
+        mensagem: 'Destaques de ofertas',
+        itens: rows.length,
+        dados: rows
+      });
+    } catch (error) {
+      return res.status(500).json({
+        sucesso: false,
+        mensagem: 'Erro ao listar destaques',
+        dados: error.message
+      });
+    }
+  }
+
 };  
