@@ -200,7 +200,7 @@ module.exports = {
         '  o.ofe_descricao AS descricao, ' +
         '  (o.ofe_promocao + 0) AS promocao, ' + // BIT -> 0/1
         '  (o.ofe_ativo + 0)    AS ativo ' +
-        'FROM OFERTA o ' + // troque para "ofertas" se esse for seu nome de tabela
+        'FROM OFERTAS o ' + // troque para "ofertas" se esse for seu nome de tabela
         whereSql +
         ' ORDER BY o.ofe_id DESC ' +
         'LIMIT ? OFFSET ?';
@@ -208,7 +208,7 @@ module.exports = {
       // 4) COUNT total com os mesmos filtros
       const countSql =
         'SELECT COUNT(*) AS total ' +
-        'FROM OFERTA o ' +
+        'FROM OFERTAS o ' +
         whereSql;
 
       const [rows]   = await db.query(selectSql, [...values, limit, offset]);
@@ -242,7 +242,7 @@ async listarDestaques(req, res) {
         '  o.ofe_titulo    AS titulo, ' +
         '  o.ofe_descricao AS descricao, ' +
         '  (o.ofe_promocao + 0) AS promocao ' +
-        'FROM OFERTA o ' +
+        'FROM OFERTAS o ' +
         'WHERE (o.ofe_promocao + 0) = 1 ' +
         'ORDER BY RAND() ' +
         'LIMIT 3';
