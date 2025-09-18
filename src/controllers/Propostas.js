@@ -135,77 +135,105 @@ module.exports = {
         }
     },
 
-    async listarPropostasFiltro(req, res) {
-  try {
-    // 1) Lê filtros e paginação
-    const { pro_status, pro_observacao, ofe_titulo } = req.query;
-    const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
-    const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
-    const offset = (page - 1) * limit;
+     async listarPropostasFiltro(req, res) {
+    try {
+      // filtros suportados
+      const {
+        negoc_id,        // igualdade
+        emp_id,          // igualdade
+        prop_status,     // igualdade ou LIKE se preferir
+        min_preco,       // faixa
+        max_preco,
+        min_qtd,
+        max_qtd,
+        de_envio,        // faixa de data
+        ate_envio
+      } = req.query;
 
-    // 2) WHERE dinâmico
-    const where = [];
-    const values = [];
+      const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
+      const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
+      const offset = (page - 1) * limit;
 
-    if (pro_status && pro_status.trim() !== '') {
-      where.push('p.pro_status LIKE ?');
-      values.push(`%${pro_status}%`);
+      const where = [];
+      const values = [];
+
+      if (negoc_id && !isNaN(negoc_id)) {
+        where.push('p.negoc_id = ?');
+        values.push(Number(negoc_id));
+      }
+      if (emp_id && !isNaN(emp_id)) {
+        where.push('p.emp_id = ?');
+        values.push(Number(emp_id));
+      }
+      if (prop_status !== undefined && String(prop_status).trim() !== '') {
+        where.push('p.prop_status = ?'); // troque para LIKE se quiser texto parcial
+        values.push(prop_status);
+      }
+      if (min_preco && !isNaN(min_preco)) {
+        where.push('p.prop_preco >= ?');
+        values.push(Number(min_preco));
+      }
+      if (max_preco && !isNaN(max_preco)) {
+        where.push('p.prop_preco <= ?');
+        values.push(Number(max_preco));
+      }
+      if (min_qtd && !isNaN(min_qtd)) {
+        where.push('p.prop_quantidade >= ?');
+        values.push(Number(min_qtd));
+      }
+      if (max_qtd && !isNaN(max_qtd)) {
+        where.push('p.prop_quantidade <= ?');
+        values.push(Number(max_qtd));
+      }
+      if (de_envio && de_envio.trim() !== '') {
+        where.push('p.prop_data_envio >= ?');
+        values.push(de_envio);
+      }
+      if (ate_envio && ate_envio.trim() !== '') {
+        where.push('p.prop_data_envio <= ?');
+        values.push(ate_envio);
+      }
+
+      const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+      const selectSql =
+        'SELECT ' +
+        '  p.prop_id, ' +
+        '  p.negoc_id, ' +
+        '  p.emp_id, ' +
+        '  p.prop_preco, ' +
+        '  p.prop_quantidade, ' +
+        '  p.prop_data_envio, ' +
+        '  p.prop_status ' +
+        'FROM PROPOSTA p ' +
+        whereSql +
+        ' ORDER BY p.prop_id DESC ' +
+        'LIMIT ? OFFSET ?';
+
+      const countSql =
+        'SELECT COUNT(*) AS total ' +
+        'FROM PROPOSTA p ' +
+        whereSql;
+
+      const [rows]   = await db.query(selectSql, [...values, limit, offset]);
+      const [countR] = await db.query(countSql, values);
+      const total = countR[0]?.total || 0;
+
+      return res.status(200).json({
+        sucesso: true,
+        mensagem: 'Lista de propostas (filtros)',
+        pagina: page,
+        limite: limit,
+        total,
+        itens: rows.length,
+        dados: rows
+      });
+    } catch (error) {
+      return res.status(500).json({
+        sucesso: false,
+        mensagem: 'Erro ao listar propostas',
+        dados: error.message
+      });
     }
-    if (pro_observacao && pro_observacao.trim() !== '') {
-      where.push('p.pro_observacao LIKE ?');
-      values.push(`%${pro_observacao}%`);
-    }
-    if (ofe_titulo && ofe_titulo.trim() !== '') {
-      where.push('o.ofe_titulo LIKE ?');
-      values.push(`%${ofe_titulo}%`);
-    }
-
-    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
-
-    // 3) SELECT com JOIN + CAST
-    const sql = `
-      SELECT
-        p.pro_id        AS id,
-        p.pro_status    AS status,
-        p.pro_observacao AS observacao,
-        CAST(p.pro_ativa AS UNSIGNED) AS ativa,
-        p.pro_ofe_id    AS oferta_id,
-        o.ofe_titulo    AS oferta_titulo
-      FROM propostas p
-      INNER JOIN ofertas o ON o.ofe_id = p.pro_ofe_id
-      ${whereSql}
-      ORDER BY p.pro_id DESC
-      LIMIT ? OFFSET ?
-    `;
-
-    // 4) COUNT total
-    const sqlCount = `
-      SELECT COUNT(*) AS total
-      FROM propostas p
-      INNER JOIN ofertas o ON o.ofe_id = p.pro_ofe_id
-      ${whereSql}
-    `;
-
-    const [rows]   = await db.query(sql, [...values, limit, offset]);
-    const [countR] = await db.query(sqlCount, values);
-    const total = countR[0]?.total || 0;
-
-    // 5) Retorno padronizado
-    return res.status(200).json({
-      sucesso: true,
-      mensagem: 'Lista de propostas',
-      pagina: page,
-      limite: limit,
-      total,
-      itens: rows.length,
-      dados: rows
-    });
-  } catch (error) {
-    return res.status(500).json({
-      sucesso: false,
-      mensagem: 'Erro ao listar propostas',
-      dados: error.message
-    });
   }
-},
-}
+};

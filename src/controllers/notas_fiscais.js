@@ -136,9 +136,14 @@ module.exports = {
   },
 
   // >>> NOVO: Listagem com filtros + paginação + total (Apostila 004)
-  async listarNotas_fiscaisFiltro(req, res) {
+   async listarNotas_fiscaisFiltro(req, res) {
     try {
-      const { nota_fiscal_numero, de_data, ate_data, contrato_id } = req.query;
+      const {
+        nota_fiscal_numero,   // LIKE
+        contrato_id,          // igualdade
+        de_data,              // faixa por data de emissão
+        ate_data,
+      } = req.query;
 
       const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
       const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
@@ -151,6 +156,10 @@ module.exports = {
         where.push('nf.nota_fiscal_numero LIKE ?');
         values.push(`%${nota_fiscal_numero}%`);
       }
+      if (contrato_id && !isNaN(contrato_id)) {
+        where.push('nf.contrato_id = ?');
+        values.push(Number(contrato_id));
+      }
       if (de_data && de_data.trim() !== '') {
         where.push('nf.nota_fiscal_data_emissao >= ?');
         values.push(de_data);
@@ -159,20 +168,16 @@ module.exports = {
         where.push('nf.nota_fiscal_data_emissao <= ?');
         values.push(ate_data);
       }
-      if (contrato_id && String(contrato_id).trim() !== '') {
-        where.push('nf.contrato_id = ?');
-        values.push(Number(contrato_id));
-      }
 
       const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
       const selectSql =
         'SELECT ' +
-        '  nf.nota_fiscal_id          AS id, ' +
-        '  nf.contrato_id             AS contrato_id, ' +
-        '  nf.nota_fiscal_numero      AS numero, ' +
+        '  nf.nota_fiscal_id       AS id, ' +
+        '  nf.contrato_id          AS contrato_id, ' +
+        '  nf.nota_fiscal_numero   AS numero, ' +
         '  nf.nota_fiscal_data_emissao AS data_emissao, ' +
-        '  nf.nota_fiscal_detalhes    AS detalhes ' +
+        '  nf.nota_fiscal_detalhes AS detalhes ' +
         'FROM NOTAS_FISCAIS nf ' +
         whereSql +
         ' ORDER BY nf.nota_fiscal_id DESC ' +
@@ -189,7 +194,7 @@ module.exports = {
 
       return res.status(200).json({
         sucesso: true,
-        mensagem: 'Lista de notas_fiscais (filtros)',
+        mensagem: 'Lista de notas fiscais (filtros)',
         pagina: page,
         limite: limit,
         total,
@@ -199,7 +204,7 @@ module.exports = {
     } catch (error) {
       return res.status(500).json({
         sucesso: false,
-        mensagem: 'Erro ao listar notas_fiscais',
+        mensagem: 'Erro ao listar notas fiscais',
         dados: error.message
       });
     }

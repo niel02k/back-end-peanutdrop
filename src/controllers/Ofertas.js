@@ -161,51 +161,85 @@ module.exports = {
 
     async listarOfertasFiltro(req, res) {
     try {
-      // 1) Ler filtros e paginação
-      const { ofe_titulo, ofe_descricao, promocao, ativo } = req.query;
+      const {
+        agri_id,
+        amen_id,
+        min_quantidade,
+        max_quantidade,
+        min_preco,
+        max_preco,
+        de_colheita,
+        ate_colheita,
+        texto,   // busca em oferta_outras_informacoes
+        ativa    // 0/1
+      } = req.query;
 
       const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
       const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
       const offset = (page - 1) * limit;
 
-      // 2) Montagem do WHERE dinâmico
       const where = [];
       const values = [];
 
-      if (ofe_titulo && ofe_titulo.trim() !== '') {
-        where.push('o.ofe_titulo LIKE ?');
-        values.push(`%${ofe_titulo}%`);
+      if (agri_id && !isNaN(agri_id)) {
+        where.push('o.agri_id = ?');
+        values.push(Number(agri_id));
       }
-      if (ofe_descricao && ofe_descricao.trim() !== '') {
-        where.push('o.ofe_descricao LIKE ?');
-        values.push(`%${ofe_descricao}%`);
+      if (amen_id && !isNaN(amen_id)) {
+        where.push('o.amen_id = ?');
+        values.push(Number(amen_id));
       }
-      // flags opcionais (0/1); aceita "0" e "1" como string
-      if (promocao !== undefined && promocao !== '') {
-        where.push('(o.ofe_promocao + 0) = ?');
-        values.push(Number(promocao) ? 1 : 0);
+      if (min_quantidade && !isNaN(min_quantidade)) {
+        where.push('o.oferta_quantidade >= ?');
+        values.push(Number(min_quantidade));
       }
-      if (ativo !== undefined && ativo !== '') {
-        where.push('(o.ofe_ativo + 0) = ?');
-        values.push(Number(ativo) ? 1 : 0);
+      if (max_quantidade && !isNaN(max_quantidade)) {
+        where.push('o.oferta_quantidade <= ?');
+        values.push(Number(max_quantidade));
+      }
+      if (min_preco && !isNaN(min_preco)) {
+        where.push('o.oferta_preco >= ?');
+        values.push(Number(min_preco));
+      }
+      if (max_preco && !isNaN(max_preco)) {
+        where.push('o.oferta_preco <= ?');
+        values.push(Number(max_preco));
+      }
+      if (de_colheita && de_colheita.trim() !== '') {
+        where.push('o.oferta_data_colheita >= ?');
+        values.push(de_colheita);
+      }
+      if (ate_colheita && ate_colheita.trim() !== '') {
+        where.push('o.oferta_data_colheita <= ?');
+        values.push(ate_colheita);
+      }
+      if (texto && texto.trim() !== '') {
+        where.push('o.oferta_outras_informacoes LIKE ?');
+        values.push(`%${texto}%`);
+      }
+      if (ativa !== undefined && ativa !== '') {
+        where.push('(o.oferta_ativa + 0) = ?');
+        values.push(Number(ativa) ? 1 : 0);
       }
 
       const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
-      // 3) SELECT paginado (com CAST de BIT -> 0/1)
       const selectSql =
         'SELECT ' +
-        '  o.ofe_id        AS id, ' +
-        '  o.ofe_titulo    AS titulo, ' +
-        '  o.ofe_descricao AS descricao, ' +
-        '  (o.ofe_promocao + 0) AS promocao, ' + // BIT -> 0/1
-        '  (o.ofe_ativo + 0)    AS ativo ' +
-        'FROM OFERTAS o ' + // troque para "ofertas" se esse for seu nome de tabela
+        '  o.oferta_id, ' +
+        '  o.agri_id, ' +
+        '  o.amen_id, ' +
+        '  o.oferta_quantidade, ' +
+        '  o.oferta_preco, ' +
+        '  o.oferta_data_colheita, ' +
+        '  o.oferta_outras_informacoes, ' +
+        '  o.oferta_data_publicacao, ' +
+        '  (o.oferta_ativa + 0) AS oferta_ativa ' +
+        'FROM OFERTAS o ' +
         whereSql +
-        ' ORDER BY o.ofe_id DESC ' +
+        ' ORDER BY o.oferta_id DESC ' +
         'LIMIT ? OFFSET ?';
 
-      // 4) COUNT total com os mesmos filtros
       const countSql =
         'SELECT COUNT(*) AS total ' +
         'FROM OFERTAS o ' +
@@ -215,10 +249,9 @@ module.exports = {
       const [countR] = await db.query(countSql, values);
       const total = countR[0]?.total || 0;
 
-      // 5) Resposta padronizada
       return res.status(200).json({
         sucesso: true,
-        mensagem: 'Lista de ofertas',
+        mensagem: 'Lista de ofertas (filtros)',
         pagina: page,
         limite: limit,
         total,
@@ -238,12 +271,16 @@ async listarDestaques(req, res) {
     try {
       const sql =
         'SELECT ' +
-        '  o.ofe_id        AS id, ' +
-        '  o.ofe_titulo    AS titulo, ' +
-        '  o.ofe_descricao AS descricao, ' +
-        '  (o.ofe_promocao + 0) AS promocao ' +
+        '  o.oferta_id, ' +
+        '  o.agri_id, ' +
+        '  o.amen_id, ' +
+        '  o.oferta_quantidade, ' +
+        '  o.oferta_preco, ' +
+        '  o.oferta_data_colheita, ' +
+        '  o.oferta_outras_informacoes, ' +
+        '  o.oferta_data_publicacao ' +
         'FROM OFERTAS o ' +
-        'WHERE (o.ofe_promocao + 0) = 1 ' +
+        'WHERE (o.oferta_ativa + 0) = 1 ' +
         'ORDER BY RAND() ' +
         'LIMIT 3';
 
@@ -251,7 +288,7 @@ async listarDestaques(req, res) {
 
       return res.status(200).json({
         sucesso: true,
-        mensagem: 'Destaques de ofertas',
+        mensagem: 'Destaques de ofertas (ativas)',
         itens: rows.length,
         dados: rows
       });
@@ -263,5 +300,4 @@ async listarDestaques(req, res) {
       });
     }
   }
-
 };  

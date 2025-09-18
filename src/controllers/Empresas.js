@@ -136,5 +136,76 @@ module.exports = {
             });
         }
     },
-    
+
+async listarEmpresasFiltro(req, res) {
+    try {
+      const {
+        razao,       // LIKE em emp_razao_social
+        fantasia,    // LIKE em emp_nome_fantasia
+        atividade,   // LIKE em emp_tipo_atividade
+        email        // LIKE em emp_email
+      } = req.query;
+
+      const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
+      const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
+      const offset = (page - 1) * limit;
+
+      const where = [];
+      const values = [];
+
+      if (razao && razao.trim() !== '') {
+        where.push('e.emp_razao_social LIKE ?');
+        values.push(`%${razao}%`);
+      }
+      if (fantasia && fantasia.trim() !== '') {
+        where.push('e.emp_nome_fantasia LIKE ?');
+        values.push(`%${fantasia}%`);
+      }
+      if (atividade && atividade.trim() !== '') {
+        where.push('e.emp_tipo_atividade LIKE ?');
+        values.push(`%${atividade}%`);
+      }
+      if (email && email.trim() !== '') {
+        where.push('e.emp_email LIKE ?');
+        values.push(`%${email}%`);
+      }
+
+      const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+      const selectSql =
+        'SELECT ' +
+        '  e.emp_id, ' +
+        '  e.emp_razao_social, ' +
+        '  e.emp_nome_fantasia, ' +
+        '  e.emp_tipo_atividade, ' +
+        '  e.emp_telefone, ' +
+        '  e.emp_email ' +
+        'FROM EMPRESAS e ' +
+        whereSql +
+        ' ORDER BY e.emp_id DESC ' +
+        'LIMIT ? OFFSET ?';
+
+      const countSql =
+        'SELECT COUNT(*) AS total ' +
+        'FROM EMPRESAS e ' +
+        whereSql;
+
+      const [rows]   = await db.query(selectSql, [...values, limit, offset]);
+      const [countR] = await db.query(countSql, values);
+      const total = countR[0]?.total || 0;
+
+      return res.status(200).json({
+        sucesso: true,
+        mensagem: 'Lista de empresas (filtros)',
+        pagina: page,
+        limite: limit,
+        total,
+        itens: rows.length,
+        dados: rows
+      });
+    } catch (error) {
+      return res.status(500).json({ sucesso: false, mensagem: 'Erro ao listar empresas', dados: error.message });
+    }
+  }
+ 
 };  

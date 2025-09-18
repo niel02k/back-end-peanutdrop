@@ -205,65 +205,76 @@ module.exports = {
   },
   
 
-  async listarUsuariosFiltro (req, res) { 
+ async listarUsuariosFiltro(req, res) {
     try {
-    // 1) Lê filtros / paginação
-    const { usu_nome, usu_email } = req.query;     // filtros (parâmetros)
-    const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
-    const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
-    const offset = (page - 1) * limit;
+      const {
+        usu_nome,          // LIKE
+        usu_email,         // LIKE
+        usu_documento,     // LIKE
+        usu_tipo_usuario   // =
+      } = req.query;
 
-    // 2) WHERE dinâmico (só entra se veio o parâmetro)
-    const where = [];
-    const values = [];
+      const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
+      const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
+      const offset = (page - 1) * limit;
 
-    if (usu_nome && usu_nome.trim() !== '') {
-      where.push('u.usu_nome LIKE ?');
-      values.push(`%${usu_nome}%`);
+      const where = [];
+      const values = [];
+
+      if (usu_nome && usu_nome.trim() !== '') {
+        where.push('u.usu_nome LIKE ?');
+        values.push(`%${usu_nome}%`);
+      }
+      if (usu_email && usu_email.trim() !== '') {
+        where.push('u.usu_email LIKE ?');
+        values.push(`%${usu_email}%`);
+      }
+      if (usu_documento && usu_documento.trim() !== '') {
+        where.push('u.usu_documento LIKE ?');
+        values.push(`%${usu_documento}%`);
+      }
+      if (usu_tipo_usuario !== undefined && String(usu_tipo_usuario).trim() !== '') {
+        where.push('u.usu_tipo_usuario = ?');
+        values.push(Number(usu_tipo_usuario));
+      }
+
+      const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+      const selectSql =
+        'SELECT ' +
+        '  u.usu_id, ' +
+        '  u.usu_tipo_usuario, ' +
+        '  u.usu_nome, ' +
+        '  u.usu_documento, ' +
+        '  u.usu_email, ' +
+        '  u.usu_endereco, ' +
+        '  u.usu_telefone, ' +
+        '  u.usu_data_cadastro ' +
+        'FROM USUARIOS u ' +
+        whereSql +
+        ' ORDER BY u.usu_id DESC ' +
+        'LIMIT ? OFFSET ?';
+
+      const countSql =
+        'SELECT COUNT(*) AS total ' +
+        'FROM USUARIOS u ' +
+        whereSql;
+
+      const [rows]   = await db.query(selectSql, [...values, limit, offset]);
+      const [countR] = await db.query(countSql, values);
+      const total = countR[0]?.total || 0;
+
+      return res.status(200).json({
+        sucesso: true,
+        mensagem: 'Lista de usuários (filtros)',
+        pagina: page,
+        limite: limit,
+        total,
+        itens: rows.length,
+        dados: rows
+      });
+    } catch (error) {
+      return res.status(500).json({ sucesso: false, mensagem: 'Erro ao listar usuários', dados: error.message });
     }
-    if (usu_email && usu_email.trim() !== '') {
-      where.push('u.usu_email LIKE ?');
-      values.push(`%${usu_email}%`);
-    }
-
-    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
-
-    // 3) SELECT paginado (com CAST de BIT e campos “tratados”)
-    const sql = `
-      SELECT
-        u.usu_id   AS id,
-        u.usu_nome AS nome,
-        u.usu_email AS email
-      FROM usuarios u
-      ${whereSql}
-      ORDER BY u.usu_id DESC
-      LIMIT ? OFFSET ?
-    `;
-
-    // 4) COUNT total (mesmos filtros)
-    const sqlCount = `
-      SELECT COUNT(*) AS total
-      FROM usuarios u
-      ${whereSql}
-    `;
-
-    // Empilha paginação no final dos values (mesmos values servem pro COUNT)
-    const [rows]   = await db.query(sql,      [...values, limit, offset]);
-    const [countR] = await db.query(sqlCount, values);
-    const total = countR[0]?.total || 0;
-
-    // 5) Retorno padronizado
-    return res.status(200).json({
-      sucesso: true,
-      mensagem: 'Lista de usuários',
-      pagina: page,
-      limite: limit,
-      total,           // total de itens que batem o filtro
-      itens: rows.length,
-      dados: rows
-    });
-  } catch (error) {
-    return res.status(500).json({ sucesso: false, mensagem: 'Erro ao listar usuários', dados: error.message });
-  }
   }
 };

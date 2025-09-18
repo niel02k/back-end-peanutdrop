@@ -150,107 +150,73 @@ s
         }
     }, 
 
-    async listarPagamentosFiltro(req, res) {
+     async listarPagamentosFiltro(req, res) {
     try {
-      // 1) Lê filtros e paginação
       const {
-        pag_status,
-        pag_metodo,
-        min_valor,
-        max_valor,
-        de_data,
-        ate_data,
-        contrato_numero,
-        nf_numero
+        contrato_id,          // igualdade
+        pag_status,           // igualdade
+        min_valor, max_valor, // faixa numérica
+        de_data, ate_data     // faixa por data de pagamento
       } = req.query;
 
       const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
       const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
       const offset = (page - 1) * limit;
 
-      // 2) WHERE dinâmico e parâmetros
       const where = [];
       const values = [];
 
-      if (pag_status && pag_status.trim() !== '') {
-        where.push('p.pag_status LIKE ?');
-        values.push(`%${pag_status}%`);
+      if (contrato_id && !isNaN(contrato_id)) {
+        where.push('p.contrato_id = ?');
+        values.push(Number(contrato_id));
       }
-
-      if (pag_metodo && pag_metodo.trim() !== '') {
-        where.push('p.pag_metodo LIKE ?');
-        values.push(`%${pag_metodo}%`);
+      if (pag_status !== undefined && String(pag_status).trim() !== '') {
+        where.push('p.pag_status = ?');
+        values.push(pag_status);
       }
-
       if (min_valor && !isNaN(min_valor)) {
         where.push('p.pag_valor >= ?');
         values.push(Number(min_valor));
       }
-
       if (max_valor && !isNaN(max_valor)) {
         where.push('p.pag_valor <= ?');
         values.push(Number(max_valor));
       }
-
       if (de_data && de_data.trim() !== '') {
-        where.push('p.pag_data >= ?');
+        where.push('p.pag_data_pagamento >= ?');
         values.push(de_data);
       }
-
       if (ate_data && ate_data.trim() !== '') {
-        where.push('p.pag_data <= ?');
+        where.push('p.pag_data_pagamento <= ?');
         values.push(ate_data);
-      }
-
-      if (contrato_numero && contrato_numero.trim() !== '') {
-        where.push('c.con_numero LIKE ?');
-        values.push(`%${contrato_numero}%`);
-      }
-
-      if (nf_numero && nf_numero.trim() !== '') {
-        where.push('nf.nf_numero LIKE ?');
-        values.push(`%${nf_numero}%`);
       }
 
       const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
 
-      // 3) SELECT com JOINs + CAST de BIT + paginação
       const selectSql =
         'SELECT ' +
-        '  p.pag_id          AS id, ' +
-        '  p.pag_status      AS status, ' +
-        '  p.pag_metodo      AS metodo, ' +
-        '  p.pag_valor       AS valor, ' +
-        '  p.pag_data        AS data, ' +
-        '  (p.pag_confirmado + 0) AS confirmado, ' + // CAST BIT -> 0/1
-        '  p.con_id          AS contrato_id, ' +
-        '  c.con_numero      AS contrato_numero, ' +
-        '  p.nf_id           AS nota_id, ' +
-        '  nf.nf_numero      AS nf_numero ' +
-        'FROM PAGAMENTO p ' +                 // ajuste: PAGAMENTO vs pagamentos
-        'LEFT JOIN CONTRATO c ON c.con_id = p.con_id ' +
-        'LEFT JOIN NOTA_FISCAL nf ON nf.nf_id = p.nf_id ' +
+        '  p.pag_id, ' +
+        '  p.contrato_id, ' +
+        '  p.pag_valor, ' +
+        '  p.pag_data_pagamento, ' +
+        '  p.pag_status ' +
+        'FROM PAGAMENTOS p ' +
         whereSql +
         ' ORDER BY p.pag_id DESC ' +
         'LIMIT ? OFFSET ?';
 
-      // 4) COUNT com mesmos filtros
       const countSql =
         'SELECT COUNT(*) AS total ' +
-        'FROM PAGAMENTO p ' +
-        'LEFT JOIN CONTRATO c ON c.con_id = p.con_id ' +
-        'LEFT JOIN NOTA_FISCAL nf ON nf.nf_id = p.nf_id ' +
+        'FROM PAGAMENTOS p ' +
         whereSql;
 
-      // 5) Executa
       const [rows]   = await db.query(selectSql, [...values, limit, offset]);
       const [countR] = await db.query(countSql, values);
       const total = countR[0]?.total || 0;
 
-      // 6) Resposta padrão
       return res.status(200).json({
         sucesso: true,
-        mensagem: 'Lista de pagamentos',
+        mensagem: 'Lista de pagamentos (filtros)',
         pagina: page,
         limite: limit,
         total,

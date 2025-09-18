@@ -9,6 +9,7 @@ router.get('/Empresas', EmpresasController.listarEmpresas);
 router.post('/Empresas', EmpresasController.cadastrarEmpresas); 
 router.patch('/Empresas/:id', EmpresasController.editarEmpresas); 
 router.delete('/Empresas/:id', EmpresasController.apagarEmpresas); 
+router.get('/Empresas', EmpresasController.listarEmpresasFiltro);
 
 router.get('/Demandas', DemandasController.listarDemandas); 
 router.post('/Demandas', DemandasController.cadastrarDemandas); 

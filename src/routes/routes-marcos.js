@@ -4,15 +4,18 @@ const router = express.Router();
 
 const NegociacoesController = require('../controllers/negociacoes'); 
 const MensagemsController = require('../controllers/Mensagem'); 
-const UsuariosController = require('../controllers/Usuarios'); 
+const UsuariosController = require('../controllers/Usuarios');
 const { route } = require('./routes-calebe');
 
-router.get('/Usuarios', UsuariosController.listarUsuarios); 
-router.post('/Usuarios', UsuariosController.cadastrarUsuarios); 
-router.patch('/Usuarios/:id', UsuariosController.editarUsuarios); 
-router.delete('/Usuarios/:id', UsuariosController.apagarUsuarios);
-router.get('/login', UsuariosController.login); 
-router.get ('/Filtros', UsuariosController.listarUsuariosFiltro)
+// CRUD básico
+router.get('/usuarios', UsuariosController.listarUsuarios);
+router.post('/usuarios', UsuariosController.cadastrarUsuarios);
+router.patch('/usuarios/:id', UsuariosController.editarUsuarios);
+router.delete('/usuarios/:id', UsuariosController.apagarUsuarios);
+// Login
+router.post('/usuarios/login', UsuariosController.login);
+// Listagem com filtros/paginação
+router.get('/usuarios/filtros', UsuariosController.listarUsuariosFiltro);
 
 
 router.get('/Negociacoes', NegociacoesController.listarNegociacoes); 
