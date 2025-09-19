@@ -158,4 +158,72 @@ module.exports = {
             });
         }
     }, 
-};  
+    async listarAgrcertificacoesFiltro(req, res) {
+        try {
+          const {
+            agri_id, cert_id, local, status
+          } = req.query;
+    
+          const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
+          const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
+          const offset = (page - 1) * limit;
+    
+          const where = [];
+          const values = [];
+    
+          if (agri_id && !isNaN(agri_id)) {
+            where.push('a.agri_id = ?');
+            values.push(Number(agri_id));
+          }
+          if (cert_id && !isNaN(cert_id)) {
+            where.push('a.cert_id = ?');
+            values.push(Number(cert_id));
+          }
+          if (local && local.trim() !== '') {
+            where.push('a.agr_local LIKE ?');
+            values.push(`%${local}%`);
+          }
+          if (status !== undefined && status !== '') {
+            where.push('a.agr_status = ?');
+            values.push(Number(status));
+          }
+    
+          const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    
+          const selectSql =
+            'SELECT ' +
+            '  a.agr_cert_id, ' +
+            '  a.agri_id, ' +
+            '  a.cert_id, ' +
+            '  a.agr_local, ' +
+            '  a.agr_data, ' +
+            '  a.agr_arquivo, ' +
+            '  a.agr_status ' +
+            'FROM AGR_CERTIFICACOES a ' +
+            whereSql +
+            ' ORDER BY a.agr_cert_id DESC ' +
+            'LIMIT ? OFFSET ?';
+    
+          const countSql =
+            'SELECT COUNT(*) AS total ' +
+            'FROM AGR_CERTIFICACOES a ' +
+            whereSql;
+    
+          const [rows]   = await db.query(selectSql, [...values, limit, offset]);
+          const [countR] = await db.query(countSql, values);
+          const total = countR[0]?.total || 0;
+    
+          return res.status(200).json({
+            sucesso: true,
+            mensagem: 'Lista de certificações de agricultores (filtros)',
+            pagina: page,
+            limite: limit,
+            total,
+            itens: rows.length,
+            dados: rows
+          });
+        } catch (error) {
+          return res.status(500).json({ sucesso: false, mensagem: 'Erro ao listar certificações de agricultores', dados: error.message });
+        }
+      }
+};

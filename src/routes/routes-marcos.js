@@ -1,4 +1,3 @@
-
 const express = require('express'); 
 const router = express.Router(); 
 
@@ -22,11 +21,12 @@ router.get('/Negociacoes', NegociacoesController.listarNegociacoes);
 router.post('/Negociacoes', NegociacoesController.cadastrarNegociacoes); 
 router.patch('/Negociacoes/:id', NegociacoesController.editarNegociacoes); 
 router.delete('/Negociacoes/:id', NegociacoesController.apagarNegociacoes); 
-router.get('/Negociacoes', NegociacoesController.listarNegociacoesFiltro);
+router.get('/Negociacoes/filtro', NegociacoesController.listarNegociacoesFiltro);
 
 router.get('/Mensagem', MensagemsController.listarMensagem); 
 router.post('/Mensagem', MensagemsController.cadastrarMensagem); 
 router.patch('/Mensagem/:id', MensagemsController.editarMensagem); 
 router.delete('/Mensagem/:id', MensagemsController.apagarMensagem); 
+router.get('/Mensagem/filtro', MensagemsController.listarMensagemFiltro);
 
 module.exports = router;

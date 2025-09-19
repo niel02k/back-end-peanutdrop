@@ -156,4 +156,80 @@ async apagarMensagem(request, response) {
     }
 },
 
-};  
+async listarMensagemFiltro(req, res) {
+    try {
+      const {
+        negoc_id, id_usuario_remetente, conteudo, visualizada, de_data, ate_data
+      } = req.query;
+
+      const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
+      const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
+      const offset = (page - 1) * limit;
+
+      const where = [];
+      const values = [];
+
+      if (negoc_id && !isNaN(negoc_id)) {
+        where.push('m.negoc_id = ?');
+        values.push(Number(negoc_id));
+      }
+      if (id_usuario_remetente && !isNaN(id_usuario_remetente)) {
+        where.push('m.id_usuario_remetente = ?');
+        values.push(Number(id_usuario_remetente));
+      }
+      if (conteudo && conteudo.trim() !== '') {
+        where.push('m.mens_conteudo LIKE ?');
+        values.push(`%${conteudo}%`);
+      }
+      if (visualizada !== undefined && visualizada !== '') {
+        where.push('m.mens_visualizada = ?');
+        values.push(Number(visualizada));
+      }
+      if (de_data && de_data.trim() !== '') {
+        where.push('m.mens_data_envio >= ?');
+        values.push(de_data);
+      }
+      if (ate_data && ate_data.trim() !== '') {
+        where.push('m.mens_data_envio <= ?');
+        values.push(ate_data);
+      }
+
+      const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+      const selectSql =
+        'SELECT ' +
+        '  m.mens_id, ' +
+        '  m.negoc_id, ' +
+        '  m.id_usuario_remetente, ' +
+        '  m.mens_conteudo, ' +
+        '  m.mens_data_envio, ' +
+        '  m.mens_visualizada ' +
+        'FROM MENSAGENS m ' +
+        whereSql +
+        ' ORDER BY m.mens_id DESC ' +
+        'LIMIT ? OFFSET ?';
+
+      const countSql =
+        'SELECT COUNT(*) AS total ' +
+        'FROM MENSAGENS m ' +
+        whereSql;
+
+      const [rows]   = await db.query(selectSql, [...values, limit, offset]);
+      const [countR] = await db.query(countSql, values);
+      const total = countR[0]?.total || 0;
+
+      return res.status(200).json({
+        sucesso: true,
+        mensagem: 'Lista de mensagens (filtros)',
+        pagina: page,
+        limite: limit,
+        total,
+        itens: rows.length,
+        dados: rows
+      });
+    } catch (error) {
+      return res.status(500).json({ sucesso: false, mensagem: 'Erro ao listar mensagens', dados: error.message });
+    }
+  }
+
+};
