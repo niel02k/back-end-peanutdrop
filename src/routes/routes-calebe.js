@@ -3,7 +3,7 @@ const router = express.Router();
 
 const ContratosController = require('../controllers/Contratos'); 
 const Notas_fiscaisController = require ('../controllers/Notas_fiscais'); 
-const PagamentosController = require ('../controllers/Pagamentos'); 
+const PagamentosController = require ('../controllers/pagamentos'); 
 
 router.get('/Contratos', ContratosController.listarContratos); 
 router.post('/Contratos', ContratosController.cadastrarContratos); 
