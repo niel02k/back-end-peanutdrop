@@ -3,7 +3,7 @@ const router = express.Router();
 
 const NegociacoesController = require('../controllers/negociacoes'); 
 const MensagemsController = require('../controllers/Mensagem'); 
-const UsuariosController = require('../controllers/Usuarios');
+const UsuariosController = require('../controllers/usuarios');
 const { route } = require('./routes-calebe');
 
 // CRUD básico
