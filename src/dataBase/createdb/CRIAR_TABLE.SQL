@@ -65,6 +65,7 @@ CREATE TABLE DEMANDAS (
     demanda_outras_informacoes VARCHAR (255),
     demanda_data_publicacao DATE,
     demanda_ativa BIT,
+    demanda_imagem VARCHAR(255) NULL,
     FOREIGN KEY (emp_id) REFERENCES EMPRESAS(emp_id),
     FOREIGN KEY (amen_id) REFERENCES AMENDOINS(amen_id)
     
@@ -92,6 +93,7 @@ CREATE TABLE OFERTAS (
     oferta_outras_informacoes VARCHAR(255),
     oferta_data_publicacao DATE,
     oferta_ativa BIT,
+    oferta_imagem VARCHAR(255) NULL,
     FOREIGN KEY (agri_id) REFERENCES AGRICULTORES(agri_id),
     FOREIGN KEY (amen_id) REFERENCES AMENDOINS(amen_id)
 );
@@ -120,6 +122,7 @@ CREATE TABLE PROPOSTA (
 CREATE TABLE MENSAGENS (
     menegoc_id INT NOT NULL,
     id_usuario_remetente INT NOT NULL,
+    negoc_id INT NOT NULL,
     mens_conteudo VARCHAR(255),
     mens_data_envio DATE,
     mens_visualizada BIT,

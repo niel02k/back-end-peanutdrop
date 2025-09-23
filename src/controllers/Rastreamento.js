@@ -170,79 +170,104 @@ module.exports = {
         }
     }, 
 
-    async listarRastreamentoFiltro (req, res) {
-  try {
-    // 1) Lê filtros e paginação
-    const { ras_lote, ras_status, agr_nome } = req.query; // parâmetros de busca
-    const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
-    const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
-    const offset = (page - 1) * limit;
+    async listarRastreamentoFiltro(req, res) {
+    try {
+      const {
+        agri_id,               // =
+        amen_id,               // =
+        de_plantacao,          // >= rast_data_plantacao
+        ate_plantacao,         // <= rast_data_plantacao
+        de_colheita,           // >= rast_data_colheita
+        ate_colheita,          // <= rast_data_colheita
+        texto,                 // LIKE em rast_informacoes_adicionais
+        min_area, max_area     // faixa em rast_area_plantacao
+      } = req.query;
 
-    // 2) WHERE dinâmico (monta só com o que vier)
-    const where = [];
-    const values = [];
+      const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
+      const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
+      const offset = (page - 1) * limit;
 
-    if (ras_lote && ras_lote.trim() !== '') {
-      where.push('rp.ras_lote LIKE ?');
-      values.push(`%${ras_lote}%`);
+      const where = [];
+      const values = [];
+
+      if (agri_id && !isNaN(agri_id)) {
+        where.push('r.agri_id = ?');
+        values.push(Number(agri_id));
+      }
+      if (amen_id && !isNaN(amen_id)) {
+        where.push('r.amen_id = ?');
+        values.push(Number(amen_id));
+      }
+      if (de_plantacao && de_plantacao.trim() !== '') {
+        where.push('r.rast_data_plantacao >= ?');
+        values.push(de_plantacao);
+      }
+      if (ate_plantacao && ate_plantacao.trim() !== '') {
+        where.push('r.rast_data_plantacao <= ?');
+        values.push(ate_plantacao);
+      }
+      if (de_colheita && de_colheita.trim() !== '') {
+        where.push('r.rast_data_colheita >= ?');
+        values.push(de_colheita);
+      }
+      if (ate_colheita && ate_colheita.trim() !== '') {
+        where.push('r.rast_data_colheita <= ?');
+        values.push(ate_colheita);
+      }
+      if (texto && texto.trim() !== '') {
+        where.push('r.rast_informacoes_adicionais LIKE ?');
+        values.push(`%${texto}%`);
+      }
+      if (min_area && !isNaN(min_area)) {
+        where.push('r.rast_area_plantacao >= ?');
+        values.push(Number(min_area));
+      }
+      if (max_area && !isNaN(max_area)) {
+        where.push('r.rast_area_plantacao <= ?');
+        values.push(Number(max_area));
+      }
+
+      const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+      const selectSql =
+        'SELECT ' +
+        '  r.rast_id, ' +
+        '  r.agri_id, ' +
+        '  r.amen_id, ' +
+        '  r.rast_data_plantacao, ' +
+        '  r.rast_data_colheita, ' +
+        '  r.rast_informacoes_adicionais, ' +
+        '  r.rast_area_plantacao ' +
+        'FROM RASTREAMENTO_PRODUCAO r ' +
+        whereSql +
+        ' ORDER BY r.rast_id DESC ' +
+        'LIMIT ? OFFSET ?';
+
+      const countSql =
+        'SELECT COUNT(*) AS total ' +
+        'FROM RASTREAMENTO_PRODUCAO r ' +
+        whereSql;
+
+      const [rows]   = await db.query(selectSql, [...values, limit, offset]);
+      const [countR] = await db.query(countSql, values);
+      const total = countR[0]?.total || 0;
+
+      return res.status(200).json({
+        sucesso: true,
+        mensagem: 'Lista de rastreamento (filtros)',
+        pagina: page,
+        limite: limit,
+        total,
+        itens: rows.length,
+        dados: rows
+      });
+    } catch (error) {
+      return res.status(500).json({
+        sucesso: false,
+        mensagem: 'Erro ao listar rastreamento',
+        dados: error.message
+      });
     }
-    if (ras_status && ras_status.trim() !== '') {
-      where.push('rp.ras_status LIKE ?'); // se status for categórico fixo, você pode trocar por "="
-      values.push(`%${ras_status}%`);
-    }
-    if (agr_nome && agr_nome.trim() !== '') {
-      where.push('a.agr_nome LIKE ?');
-      values.push(`%${agr_nome}%`);
-    }
-
-    const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
-
-    // 3) SELECT com JOIN + CAST de BIT + paginação
-    const sql = `
-      SELECT
-        rp.ras_id                 AS id,
-        rp.ras_lote               AS lote,
-        rp.ras_status             AS status,
-        CAST(rp.ras_ativo AS UNSIGNED) AS ativo,
-        rp.ras_agr_id             AS agricultor_id,
-        a.agr_nome                AS agricultor_nome
-      FROM rastreamento_producao rp
-      INNER JOIN agricultores a ON a.agr_id = rp.ras_agr_id
-      ${whereSql}
-      ORDER BY rp.ras_id DESC
-      LIMIT ? OFFSET ?
-    `;
-
-    // 4) COUNT total com mesmos filtros
-    const sqlCount = `
-      SELECT COUNT(*) AS total
-      FROM rastreamento_producao rp
-      INNER JOIN agricultores a ON a.agr_id = rp.ras_agr_id
-      ${whereSql}
-    `;
-
-    // executa (empilha paginação no final dos values)
-    const [rows]   = await db.query(sql,      [...values, limit, offset]);
-    const [countR] = await db.query(sqlCount, values);
-    const total = countR[0]?.total || 0;
-
-    // 5) Retorno padronizado
-    return res.status(200).json({
-      sucesso: true,
-      mensagem: 'Lista de rastreamentos da produção',
-      pagina: page,
-      limite: limit,
-      total,                 // total de registros que batem o filtro
-      itens: rows.length,    // itens retornados nesta página
-      dados: rows
-    });
-  } catch (error) {
-    return res.status(500).json({
-      sucesso: false,
-      mensagem: 'Erro ao listar rastreamento',
-      dados: error.message
-    });
- }
-    }
+  }
 };
  

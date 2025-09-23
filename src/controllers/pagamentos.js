@@ -149,4 +149,86 @@ s
             });
         }
     }, 
+
+     async listarPagamentosFiltro(req, res) {
+    try {
+      const {
+        contrato_id,          // igualdade
+        pag_status,           // igualdade
+        min_valor, max_valor, // faixa numérica
+        de_data, ate_data     // faixa por data de pagamento
+      } = req.query;
+
+      const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
+      const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
+      const offset = (page - 1) * limit;
+
+      const where = [];
+      const values = [];
+
+      if (contrato_id && !isNaN(contrato_id)) {
+        where.push('p.contrato_id = ?');
+        values.push(Number(contrato_id));
+      }
+      if (pag_status !== undefined && String(pag_status).trim() !== '') {
+        where.push('p.pag_status = ?');
+        values.push(pag_status);
+      }
+      if (min_valor && !isNaN(min_valor)) {
+        where.push('p.pag_valor >= ?');
+        values.push(Number(min_valor));
+      }
+      if (max_valor && !isNaN(max_valor)) {
+        where.push('p.pag_valor <= ?');
+        values.push(Number(max_valor));
+      }
+      if (de_data && de_data.trim() !== '') {
+        where.push('p.pag_data_pagamento >= ?');
+        values.push(de_data);
+      }
+      if (ate_data && ate_data.trim() !== '') {
+        where.push('p.pag_data_pagamento <= ?');
+        values.push(ate_data);
+      }
+
+      const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+      const selectSql =
+        'SELECT ' +
+        '  p.pag_id, ' +
+        '  p.contrato_id, ' +
+        '  p.pag_valor, ' +
+        '  p.pag_data_pagamento, ' +
+        '  p.pag_status ' +
+        'FROM PAGAMENTOS p ' +
+        whereSql +
+        ' ORDER BY p.pag_id DESC ' +
+        'LIMIT ? OFFSET ?';
+
+      const countSql =
+        'SELECT COUNT(*) AS total ' +
+        'FROM PAGAMENTOS p ' +
+        whereSql;
+
+      const [rows]   = await db.query(selectSql, [...values, limit, offset]);
+      const [countR] = await db.query(countSql, values);
+      const total = countR[0]?.total || 0;
+
+      return res.status(200).json({
+        sucesso: true,
+        mensagem: 'Lista de pagamentos (filtros)',
+        pagina: page,
+        limite: limit,
+        total,
+        itens: rows.length,
+        dados: rows
+      });
+    } catch (error) {
+      return res.status(500).json({
+        sucesso: false,
+        mensagem: 'Erro ao listar pagamentos',
+        dados: error.message
+      });
+    }
+  }
 };  

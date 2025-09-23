@@ -147,4 +147,65 @@ module.exports = {
             });
         }
     }, 
-};  
+    async listarAmendoinsFiltro(req, res) {
+        try {
+          const {
+            variedade, tamanho, outras_caracteristicas
+          } = req.query;
+    
+          const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
+          const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
+          const offset = (page - 1) * limit;
+    
+          const where = [];
+          const values = [];
+    
+          if (variedade && variedade.trim() !== '') {
+            where.push('a.amen_variedade LIKE ?');
+            values.push(`%${variedade}%`);
+          }
+          if (tamanho && tamanho.trim() !== '') {
+            where.push('a.amen_tamanho LIKE ?');
+            values.push(`%${tamanho}%`);
+          }
+          if (outras_caracteristicas && outras_caracteristicas.trim() !== '') {
+            where.push('a.amen_outras_caracteristicas LIKE ?');
+            values.push(`%${outras_caracteristicas}%`);
+          }
+    
+          const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    
+          const selectSql =
+            'SELECT ' +
+            '  a.amen_id, ' +
+            '  a.amen_variedade, ' +
+            '  a.amen_tamanho, ' +
+            '  a.amen_outras_caracteristicas ' +
+            'FROM AMENDOINS a ' +
+            whereSql +
+            ' ORDER BY a.amen_id DESC ' +
+            'LIMIT ? OFFSET ?';
+    
+          const countSql =
+            'SELECT COUNT(*) AS total ' +
+            'FROM AMENDOINS a ' +
+            whereSql;
+    
+          const [rows]   = await db.query(selectSql, [...values, limit, offset]);
+          const [countR] = await db.query(countSql, values);
+          const total = countR[0]?.total || 0;
+    
+          return res.status(200).json({
+            sucesso: true,
+            mensagem: 'Lista de amendoins (filtros)',
+            pagina: page,
+            limite: limit,
+            total,
+            itens: rows.length,
+            dados: rows
+          });
+        } catch (error) {
+          return res.status(500).json({ sucesso: false, mensagem: 'Erro ao listar amendoins', dados: error.message });
+        }
+      }
+};

@@ -157,4 +157,60 @@ module.exports = {
             });
         }
     }, 
-};  
+    async listarCertificacoesFiltro(req, res) {
+        try {
+          const {
+            orgao_regulador, nome
+          } = req.query;
+    
+          const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
+          const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
+          const offset = (page - 1) * limit;
+    
+          const where = [];
+          const values = [];
+    
+          if (orgao_regulador && orgao_regulador.trim() !== '') {
+            where.push('c.cert_orgao_regulador LIKE ?');
+            values.push(`%${orgao_regulador}%`);
+          }
+          if (nome && nome.trim() !== '') {
+            where.push('c.cert_nome LIKE ?');
+            values.push(`%${nome}%`);
+          }
+    
+          const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    
+          const selectSql =
+            'SELECT ' +
+            '  c.cert_id, ' +
+            '  c.cert_orgao_regulador, ' +
+            '  c.cert_nome ' +
+            'FROM CERTIFICACOES c ' +
+            whereSql +
+            ' ORDER BY c.cert_id DESC ' +
+            'LIMIT ? OFFSET ?';
+    
+          const countSql =
+            'SELECT COUNT(*) AS total ' +
+            'FROM CERTIFICACOES c ' +
+            whereSql;
+    
+          const [rows]   = await db.query(selectSql, [...values, limit, offset]);
+          const [countR] = await db.query(countSql, values);
+          const total = countR[0]?.total || 0;
+    
+          return res.status(200).json({
+            sucesso: true,
+            mensagem: 'Lista de certificações (filtros)',
+            pagina: page,
+            limite: limit,
+            total,
+            itens: rows.length,
+            dados: rows
+          });
+        } catch (error) {
+          return res.status(500).json({ sucesso: false, mensagem: 'Erro ao listar certificações', dados: error.message });
+        }
+      }
+};

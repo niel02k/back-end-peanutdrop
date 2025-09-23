@@ -150,4 +150,70 @@ module.exports = {
             });
         }
     }, 
-};  
+    async listarAgricultoresFiltro(req, res) {
+        try {
+          const {
+            localizacao, tipos_amendoim, certificacoes, outras_info
+          } = req.query;
+    
+          const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
+          const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
+          const offset = (page - 1) * limit;
+    
+          const where = [];
+          const values = [];
+    
+          if (localizacao && localizacao.trim() !== '') {
+            where.push('a.agri_localizacao_propriedade LIKE ?');
+            values.push(`%${localizacao}%`);
+          }
+          if (tipos_amendoim && tipos_amendoim.trim() !== '') {
+            where.push('a.agri_tipos_amendoim_cultivados LIKE ?');
+            values.push(`%${tipos_amendoim}%`);
+          }
+          if (certificacoes && certificacoes.trim() !== '') {
+            where.push('a.agri_certificacoes LIKE ?');
+            values.push(`%${certificacoes}%`);
+          }
+          if (outras_info && outras_info.trim() !== '') {
+            where.push('a.agri_outras_informacoes LIKE ?');
+            values.push(`%${outras_info}%`);
+          }
+    
+          const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    
+          const selectSql =
+            'SELECT ' +
+            '  a.agri_id, ' +
+            '  a.agri_localizacao_propriedade, ' +
+            '  a.agri_tipos_amendoim_cultivados, ' +
+            '  a.agri_certificacoes, ' +
+            '  a.agri_outras_informacoes ' +
+            'FROM AGRICULTORES a ' +
+            whereSql +
+            ' ORDER BY a.agri_id DESC ' +
+            'LIMIT ? OFFSET ?';
+    
+          const countSql =
+            'SELECT COUNT(*) AS total ' +
+            'FROM AGRICULTORES a ' +
+            whereSql;
+    
+          const [rows]   = await db.query(selectSql, [...values, limit, offset]);
+          const [countR] = await db.query(countSql, values);
+          const total = countR[0]?.total || 0;
+    
+          return res.status(200).json({
+            sucesso: true,
+            mensagem: 'Lista de agricultores (filtros)',
+            pagina: page,
+            limite: limit,
+            total,
+            itens: rows.length,
+            dados: rows
+          });
+        } catch (error) {
+          return res.status(500).json({ sucesso: false, mensagem: 'Erro ao listar agricultores', dados: error.message });
+        }
+      }
+};
