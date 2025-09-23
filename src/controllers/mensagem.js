@@ -1,6 +1,8 @@
 const db = require('../dataBase/connection'); 
 
 module.exports = {
+    // Listagem de mensagens
+    // Retorna todas as mensagens cadastradas
     async listarMensagem(request, response) {
         try {
 
@@ -24,6 +26,8 @@ module.exports = {
             });
         }
     }, 
+    // Cadastro de mensagem
+    // Insere uma nova mensagem no banco de dados
    async cadastrarMensagem(request, response) {
     try {
         const {
@@ -71,7 +75,9 @@ module.exports = {
         });
     }
       },
-
+    // Atualização de mensagem
+    // Atualiza conteúdo, data de envio e status de visualização
+    // Retorna erro 404 se mensagem não encontrada
       async editarMensagem(request, response) {
         try {
             const { id } = request.params;

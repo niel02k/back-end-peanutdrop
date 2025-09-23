@@ -295,3 +295,21 @@ module.exports = {
     }
   }
 };
+
+
+  // Atualiza dados do usuário
+  // Criptografa a senha se enviada
+  // Retorna erro 404 se usuário não encontrado
+  // Retorna dados atualizados sem expor a senha
+
+  // Exclusão de usuário
+  // Confere existência antes de deletar, retorna erro 404 se não encontrado
+
+  // Login de usuário
+  // Busca usuário pelo email e tipo
+  // Compara senha informada com hash usando bcrypt
+  // Retorna erro 404 se não encontrado ou senha incorreta
+
+  // Listagem dinâmica de usuários com filtros e paginação
+  // Permite buscar por nome, email, documento e tipo
+  // Retorna total de registros para paginação

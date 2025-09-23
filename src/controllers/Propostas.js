@@ -1,6 +1,8 @@
 const db = require('../dataBase/connection'); 
 
 module.exports = {
+    // Listagem de propostas
+    // Retorna todas as propostas cadastradas
     async listarPropostas(request, response) {
         try {
 
@@ -28,6 +30,8 @@ module.exports = {
             });
         }
     }, 
+    // Cadastro de proposta
+    // Insere uma nova proposta no banco de dados
     async cadastrarPropostas(request, response) {
         try {
 
@@ -67,6 +71,9 @@ module.exports = {
             });
         }
     }, 
+    // Atualização de proposta
+    // Atualiza dados da proposta
+    // Retorna erro 404 se proposta não encontrada
     async editarPropostas(request, response) {
         try {
             const id = request.params.id;

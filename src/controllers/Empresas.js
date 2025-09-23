@@ -1,6 +1,8 @@
 const db = require('../dataBase/connection'); 
 
 module.exports = {
+    // Listagem de empresas
+    // Retorna todas as empresas cadastradas
     async listarEmpresas(request, response) {
         try {
 
@@ -28,6 +30,8 @@ module.exports = {
             });
         }
     }, 
+    // Cadastro de empresa
+    // Insere uma nova empresa no banco de dados
     async cadastrarEmpresas(request, response) {
         try {
 
@@ -66,6 +70,9 @@ module.exports = {
             });
         }
     }, 
+    // Atualização de empresa
+    // Atualiza dados da empresa
+    // Retorna erro 404 se empresa não encontrada
     async editarEmpresas(request, response) {
         try {
             const id = request.params.id;
@@ -104,6 +111,9 @@ module.exports = {
             });
         }
     },    
+    // Exclusão de empresa
+    // Remove uma empresa do banco de dados
+    // Retorna erro 404 se empresa não encontrada
     async apagarEmpresas(request, response) {
         try {
     
@@ -208,4 +218,4 @@ async listarEmpresasFiltro(req, res) {
     }
   }
  
-};  
+};
