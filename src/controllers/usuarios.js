@@ -1,5 +1,6 @@
 const db = require("../dataBase/connection");
 const mensagem = require("./Mensagem");
+const crypto = require('../utils/crypto');
 
 module.exports = {
   async listarUsuarios(request, response) {
@@ -36,6 +37,9 @@ module.exports = {
         usu_data_cadastro,
       } = request.body;
 
+      // Criptografar senha
+      const senhaCriptografada = await crypto.hashPassword(usu_senha);
+
       const sql = `
                         INSERT INTO USUARIOS 
                         (usu_tipo_usuario, usu_nome, usu_documento, usu_email, usu_senha, usu_endereco, usu_telefone, usu_data_cadastro) 
@@ -47,7 +51,7 @@ module.exports = {
         usu_nome,
         usu_documento,
         usu_email,
-        usu_senha,
+        senhaCriptografada,
         usu_endereco,
         usu_telefone,
         usu_data_cadastro,
@@ -79,6 +83,11 @@ module.exports = {
       const { id } = request.params;
       const { nome, email, senha, endereco, telefone } = request.body;
 
+      let senhaCriptografada = senha;
+      if (senha) {
+        senhaCriptografada = await crypto.hashPassword(senha);
+      }
+
       const sql = `
                 UPDATE USUARIOS 
                 SET 
@@ -90,7 +99,7 @@ module.exports = {
                 WHERE usu_id = ?
             `;
 
-      const values = [nome, email, senha, endereco, telefone, id];
+      const values = [nome, email, senhaCriptografada, endereco, telefone, id];
 
       const [result] = await db.query(sql, values);
 
@@ -108,7 +117,7 @@ module.exports = {
         email,
         telefone,
         endereco,
-        senha,
+        senha: undefined,
       };
 
       return response.status(200).json({
@@ -163,15 +172,14 @@ module.exports = {
 
       const sql = `
                 SELECT
-                    usu_id, usu_nome, usu_tipo_usuario
+                    usu_id, usu_nome, usu_tipo_usuario, usu_senha
                 FROM
                     USUARIOS
                 WHERE
-                    usu_email = ? AND usu_senha = ? AND usu_tipo_usuario = ?;
+                    usu_email = ? AND usu_tipo_usuario = ?;
             `;
 
-        const values = [email, senha, tipo];
-
+        const values = [email, tipo];
         const [rows] = await db.query(sql, values);
         const nItens = rows.length;
 
@@ -183,12 +191,21 @@ module.exports = {
         });
         }
 
-        const dados = rows.map(usuario => ({
+        const usuario = rows[0];
+        const senhaValida = await crypto.comparePassword(senha, usuario.usu_senha);
+        if (!senhaValida) {
+          return response.status(404).json({
+            sucesso: false,
+            mensagem : "Usuário não encontrado ou senha incorreta.",
+            dados: null,
+          });
+        }
+
+        const dados = {
             id: usuario.usu_id,
             nome: usuario.usu_nome,
             tipo: usuario.usu_tipo_usuario,
-        })
-        )
+        };
 
       return response.status(200).json({
         sucesso: true,
