@@ -1,6 +1,8 @@
 const db = require('../dataBase/connection'); 
 
 module.exports = {
+    // Listagem de pagamentos
+    // Retorna todos os pagamentos cadastrados
     async listarPagamentos(request, response) {
         try {
             const sql =`
@@ -34,6 +36,8 @@ module.exports = {
             });
         }
     }, 
+    // Cadastro de pagamento
+    // Insere um novo pagamento no banco de dados
     async cadastrarPagamentos(request, response) {
         try {
 
@@ -72,6 +76,9 @@ module.exports = {
             });
         }
     }, 
+    // Atualização de pagamento
+    // Atualiza dados do pagamento
+    // Retorna erro 404 se pagamento não encontrado
     async editarPagamentos(request, response) {
         try {
             const { contrato_id, pag_valor, pag_data_pagamento, pag_status } = request.body;
@@ -231,4 +238,4 @@ s
       });
     }
   }
-};  
+};

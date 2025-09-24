@@ -1,6 +1,8 @@
 const db = require('../dataBase/connection'); 
 
 module.exports = {
+    // Listagem de amendoins
+    // Retorna todos os amendoins cadastrados
     async listarAmendoins(request, response) {
         try {
 
@@ -28,6 +30,8 @@ module.exports = {
             });
         }
     }, 
+    // Cadastro de amendoim
+    // Insere um novo amendoim no banco de dados
     async cadastrarAmendoins(request, response) {
         try {
 
@@ -68,6 +72,9 @@ module.exports = {
             });
         }
     }, 
+    // Atualização de amendoim
+    // Atualiza dados do amendoim
+    // Retorna erro 404 se amendoim não encontrado
     async editarAmendoins(request, response) {
         try {
 

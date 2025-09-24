@@ -1,6 +1,8 @@
 const db = require('../dataBase/connection'); 
 
 module.exports = {
+  // Listagem de notas fiscais
+  // Retorna todas as notas fiscais cadastradas
   async listarNotas_fiscais(request, response) {
     try {
       const sql =`
@@ -30,6 +32,8 @@ module.exports = {
     }
   },
 
+  // Cadastro de nota fiscal
+  // Insere uma nova nota fiscal no banco de dados
   async cadastrarNotas_fiscais(request, response) {
     try {
       const { contrato_id, nota_fiscal_numero, nota_fiscal_data_emissao, nota_fiscal_detalhes } = request.body;
@@ -66,6 +70,9 @@ module.exports = {
     }
   },
 
+  // Atualização de nota fiscal
+  // Atualiza dados da nota fiscal
+  // Retorna erro 404 se nota fiscal não encontrada
   async editarNotas_fiscais(request, response) {
     try {
       const { contrato_id, nota_fiscal_numero, nota_fiscal_data_emissao, nota_fiscal_detalhes } = request.body;

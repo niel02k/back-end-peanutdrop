@@ -1,6 +1,8 @@
 const db = require('../dataBase/connection'); 
 
 module.exports = {
+    // Listagem de negociações
+    // Retorna todas as negociações cadastradas
     async listarNegociacoes(request, response) {
         try {
           const sql =`SELECT negoc_id, oferta_id, demanda_id, negoc_status FROM NEGOCIACOES;`
@@ -21,6 +23,8 @@ module.exports = {
             });
         }
     }, 
+    // Cadastro de negociação
+    // Insere uma nova negociação no banco de dados
     async cadastrarNegociacoes(request, response) {
         try {
             const {
@@ -64,6 +68,9 @@ module.exports = {
             });
         }
     },    
+    // Atualização de negociação
+    // Atualiza status da negociação
+    // Retorna erro 404 se negociação não encontrada
     async editarNegociacoes(request, response) {
         try {
             const { id } = request.params;
@@ -202,4 +209,4 @@ async listarNegociacoesFiltro(req, res) {
       });
     }
   }
-};  
+};

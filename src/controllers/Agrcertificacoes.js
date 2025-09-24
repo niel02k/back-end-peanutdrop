@@ -1,6 +1,8 @@
 const db = require('../dataBase/connection'); 
 
 module.exports = {
+    // Listagem de certificações de agricultores
+    // Retorna todas as certificações cadastradas
     async listarAgrcertificacoes(request, response) {
         try {
 
@@ -34,6 +36,8 @@ module.exports = {
             });
         }
     }, 
+    // Cadastro de certificação de agricultor
+    // Insere uma nova certificação no banco de dados
     async cadastrarAgrcertificacoes(request, response) {
         try {
             const { agri_id, cert_id, agr_local, agr_data, agr_arquivo, agr_status } = request.body;
@@ -72,6 +76,9 @@ module.exports = {
             });
         }
     }, 
+    // Atualização de certificação de agricultor
+    // Atualiza dados da certificação
+    // Retorna erro 404 se certificação não encontrada
     async editarAgrcertificacoes(request, response) {
         try {
             const { agri_id, cert_id, agr_local, agr_data, agr_arquivo, agr_status } = request.body;

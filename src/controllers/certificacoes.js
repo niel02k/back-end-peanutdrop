@@ -1,6 +1,8 @@
 const db = require('../dataBase/connection'); 
 
 module.exports = {
+    // Listagem de certificações
+    // Retorna todas as certificações cadastradas
     async listarCertificacoes(request, response) {
         try {
 
@@ -39,6 +41,8 @@ module.exports = {
             });
         }
     }, 
+    // Cadastro de certificação
+    // Insere uma nova certificação no banco de dados
     async cadastrarCertificacoes(request, response) {
         try {
             const {cert_orgao_regulador, cert_nome} = request.body;
@@ -76,6 +80,9 @@ module.exports = {
             });
         }
     }, 
+    // Atualização de certificação
+    // Atualiza dados da certificação
+    // Retorna erro 404 se certificação não encontrada
     async editarCertificacoes(request, response) {
         try {
 

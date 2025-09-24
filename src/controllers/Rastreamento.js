@@ -1,6 +1,8 @@
 const db = require('../dataBase/connection'); 
 
 module.exports = {
+    // Listagem de rastreamento de produção
+    // Retorna todos os registros de rastreamento cadastrados
     async listarRastreamento(request, response) {
         try {
 
@@ -42,6 +44,8 @@ module.exports = {
             });
         }
     }, 
+    // Cadastro de rastreamento
+    // Insere um novo registro de rastreamento no banco de dados
     async cadastrarRastreamento(request, response) {
         try {
             const { agri_id, amen_id, rast_data_plantacao, rast_data_colheita, rast_informacoes_adicionais, rast_area_plantacao } = request.body;
@@ -80,6 +84,9 @@ module.exports = {
             });
         }
     }, 
+    // Atualização de rastreamento
+    // Atualiza dados do rastreamento
+    // Retorna erro 404 se rastreamento não encontrado
     async editarRastreamento(request, response) {
         try {
 
@@ -270,4 +277,3 @@ module.exports = {
     }
   }
 };
- 

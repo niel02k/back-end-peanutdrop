@@ -1,6 +1,8 @@
 const db = require('../dataBase/connection'); 
 
 module.exports = {
+    // Listagem de contratos
+    // Retorna todos os contratos cadastrados
     async listarContratos(request, response) {
         try {
 
@@ -35,6 +37,8 @@ module.exports = {
             });
         }
     }, 
+    // Cadastro de contrato
+    // Insere um novo contrato no banco de dados
     async cadastrarContratos(request, response) {
         try {
 
@@ -73,6 +77,9 @@ module.exports = {
             });
         }
     }, 
+    // Atualização de contrato
+    // Atualiza dados do contrato
+    // Retorna erro 404 se contrato não encontrado
     async editarContratos(request, response) {
         try {
             const { id_negociacao, contrato_data_assinatura, contrato_detalhes_contrato } = request.body;

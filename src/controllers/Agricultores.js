@@ -1,6 +1,8 @@
 const db = require('../dataBase/connection'); 
 
 module.exports = {
+    // Listagem de agricultores
+    // Retorna todos os agricultores cadastrados
     async listarAgricultores(request, response) {
         try {
 
@@ -30,6 +32,8 @@ module.exports = {
             });
         }
     }, 
+    // Cadastro de agricultor
+    // Insere um novo agricultor no banco de dados
     async cadastrarAgricultores(request, response) {
         try {
 
@@ -70,6 +74,9 @@ module.exports = {
             });
         }
     }, 
+    // Atualização de agricultor
+    // Atualiza dados do agricultor
+    // Retorna erro 404 se agricultor não encontrado
     async editarAgricultores(request, response) {
         try {
 
