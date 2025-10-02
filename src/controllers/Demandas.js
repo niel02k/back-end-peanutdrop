@@ -1,4 +1,5 @@
 const db = require('../dataBase/connection'); 
+const { gerarUrl } = require('../../src/utils/gerarUrl');
 
 // utils simples
 const isNum = (v) => v !== null && v !== '' && !Number.isNaN(Number(v));
@@ -37,7 +38,7 @@ module.exports = {
     async cadastrarDemandas(request, response) {
         try {
             const {emp_id, amen_id, quantidade, preco_maximo, data_entrega, informacoes, data_publi, ativa} = request.body;
-
+            const imagem = request.file ? request.file.filename : null;
             // Validações conforme apostila 005
             if (!isNum(emp_id)) {
                 return response.status(422).json({ sucesso: false, mensagem: 'emp_id obrigatório e deve ser número.' });
@@ -65,14 +66,14 @@ module.exports = {
             //instruções sql
             const sql = `
                 INSERT INTO DEMANDAS
-                    (emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, demanda_data_entrega, demanda_outras_informacoes, demanda_data_publicacao, demanda_ativa) 
+                    (emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, demanda_data_entrega, demanda_outras_informacoes, demanda_data_publicacao, demanda_ativa, demanda_imagem) 
                 VALUES
-                    (?, ?, ? ,? ,? ,? ,? ,?);
+                    (?, ?, ? ,? ,? ,? ,? ,?, ?);
             `;
-
-            const values = [emp_id, amen_id, quantidade, preco_maximo, data_entrega, informacoes, data_publi, ativa];
+            const values = [emp_id, amen_id, quantidade, preco_maximo, data_entrega, informacoes, data_publi, ativa, imagem];
             const [result] = await db.query(sql, values);
-
+            // Gera a URL pública da imagem
+            const urlImagem = imagem ? gerarUrl(imagem, 'demandas', 'padrao.jpg') : null;
             const dados= {
                 emp_id,
                 amen_id,
@@ -81,7 +82,8 @@ module.exports = {
                 data_entrega,
                 informacoes,
                 data_publi,
-                ativa
+                ativa,
+                imagem: urlImagem
             };
 
             return response.status(200).json({

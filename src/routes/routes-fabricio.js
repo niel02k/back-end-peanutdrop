@@ -4,6 +4,7 @@ const router = express.Router();
 const CertificacoesController = require('../controllers/Certificacoes');
 const RastreamentoController = require('../controllers/Rastreamento');
 const AgrcertificacoesController = require('../controllers/Agrcertificacoes');
+const upload = require('../utils/uploadHelper');
 
 
 router.get('/Certificacoes', CertificacoesController.listarCertificacoes); 
@@ -19,7 +20,7 @@ router.delete('/Rastreamento/:id', RastreamentoController.apagarRastreamento);
 router.get('/Rastreamento/filtro', RastreamentoController.listarRastreamentoFiltro)
 
 router.get('/Agr_cetificacoes', AgrcertificacoesController.listarAgrcertificacoes ); 
-router.post('/Agr_cetificacoes', AgrcertificacoesController.cadastrarAgrcertificacoes ); 
+router.post('/Agr_cetificacoes', upload.single('agr_arquivo'), AgrcertificacoesController.cadastrarAgrcertificacoes ); 
 router.patch('/Agr_cetificacoes/id', AgrcertificacoesController.editarAgrcertificacoes ); 
 router.delete('/Agr_cetificacoes/id', AgrcertificacoesController.apagarAgrcertificacoes );
 router.get('/Agr_cetificacoes/filtro', AgrcertificacoesController.listarAgrcertificacoesFiltro);

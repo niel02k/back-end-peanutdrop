@@ -4,6 +4,7 @@ const router = express.Router();
 const EmpresasController = require('../controllers/Empresas'); 
 const DemandasController = require('../controllers/Demandas'); 
 const PropostasController = require('../controllers/Propostas'); 
+const upload = require('../utils/uploadHelper');
 
 router.get('/Empresas', EmpresasController.listarEmpresas); 
 router.post('/Empresas', EmpresasController.cadastrarEmpresas); 
@@ -12,7 +13,7 @@ router.delete('/Empresas/:id', EmpresasController.apagarEmpresas);
 router.get('/Empresas/filtro', EmpresasController.listarEmpresasFiltro);
 
 router.get('/Demandas', DemandasController.listarDemandas); 
-router.post('/Demandas', DemandasController.cadastrarDemandas); 
+router.post('/Demandas', upload.single('imagem'), DemandasController.cadastrarDemandas); 
 router.patch('/Demandas/:id', DemandasController.editarDemandas); 
 router.delete('/Demandas/:id', DemandasController.apagarDemandas); 
 router.get('/Demandas/filtro', DemandasController.listarDemandasFiltro);

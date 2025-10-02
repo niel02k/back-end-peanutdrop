@@ -4,6 +4,7 @@ const router = express.Router();
 const AgricultoresController = require('../controllers/Agricultores'); 
 const AmendoinsController = require('../controllers/Amendoins'); 
 const OfertasController = require('../controllers/Ofertas'); 
+const upload = require('../utils/uploadHelper');
 
 
 router.get('/Agricultores', AgricultoresController.listarAgricultores); 
@@ -19,7 +20,7 @@ router.delete('/Amendoins/:id', AmendoinsController.apagarAmendoins);
 router.get('/Amendoins/filtro', AmendoinsController.listarAmendoinsFiltro);
 
 router.get('/Ofertas', OfertasController.listarOfertas); 
-router.post('/Ofertas', OfertasController.cadastrarOfertas); 
+router.post('/Ofertas', upload.single('imagem'), OfertasController.cadastrarOfertas); 
 router.patch('/Ofertas/:id', OfertasController.editarOfertas); 
 router.delete('/Ofertas/:id', OfertasController.apagarOfertas);
 router.get('/Ofertas/filtro', OfertasController.listarOfertasFiltro);

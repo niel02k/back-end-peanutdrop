@@ -1,4 +1,5 @@
 const db = require('../dataBase/connection'); 
+const { gerarUrl } = require('../../src/utils/gerarUrl');
 
 module.exports = {
     // Listagem de certificações de agricultores
@@ -40,29 +41,26 @@ module.exports = {
     // Insere uma nova certificação no banco de dados
     async cadastrarAgrcertificacoes(request, response) {
         try {
-            const { agri_id, cert_id, agr_local, agr_data, agr_arquivo, agr_status } = request.body;
-            
+            const { agri_id, cert_id, agr_local, agr_data, agr_status } = request.body;
+            const agr_arquivo = request.file ? request.file.filename : null;
             // Instrução SQL
             const sql = `
                INSERT INTO AGR_CERTIFICACOES (agri_id, cert_id, agr_local, agr_data, agr_arquivo, agr_status) VALUES
                 (?,?,?,?,?,?) 
                
                `;
-                    const values = [agri_id, cert_id, agr_local, agr_data, agr_arquivo, agr_status];
-
-                    const [result] = await db.query(sql, values);
-
-                    const dados = {
-                        agri_id: result.insertId,
-                        cert_id,
-                        agr_local,
-                        agr_data,
-                        agr_arquivo,
-                        agr_status
-                    };
-
-
-
+            const values = [agri_id, cert_id, agr_local, agr_data, agr_arquivo, agr_status];
+            const [result] = await db.query(sql, values);
+            // Gera a URL pública do arquivo
+            const urlArquivo = agr_arquivo ? gerarUrl(agr_arquivo, 'agr_certificacoes', 'padrao.pdf') : null;
+            const dados = {
+                agri_id: result.insertId,
+                cert_id,
+                agr_local,
+                agr_data,
+                agr_arquivo: urlArquivo,
+                agr_status
+            };
             return response.status(200).json({
                 sucesso: true, 
                 mensagem: 'Cadastro de certificacoes', 

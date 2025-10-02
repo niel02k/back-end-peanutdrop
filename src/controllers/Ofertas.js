@@ -1,5 +1,6 @@
 // Conexão com o banco de dados
 const db = require('../dataBase/connection'); 
+const { gerarUrl } = require('../../src/utils/gerarUrl');
 
 // Funções auxiliares para validação de tipos
 const isNum = (v) => v !== null && v !== '' && !Number.isNaN(Number(v));
@@ -35,15 +36,18 @@ module.exports = {
     async cadastrarOfertas(request, response) {
         try {
             const { agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa } = request.body;
+            const imagem = request.file ? request.file.filename : null;
             // Monta instrução SQL para inserir oferta
             const sql = `
              INSERT INTO OFERTAS (agri_id, amen_id, 
              oferta_quantidade, oferta_preco, oferta_data_colheita, 
-             oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa) 
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+             oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa, oferta_imagem) 
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
-            const values = [agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa];
+            const values = [agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa, imagem];
             const [result] = await db.query(sql, values);
+            // Gera a URL pública da imagem
+            const urlImagem = imagem ? gerarUrl(imagem, 'ofertas', 'padrao.jpg') : null;
             const dados = {
                 inf_id: result.insertId,
                 agri_id,
@@ -53,7 +57,8 @@ module.exports = {
                 oferta_data_colheita,
                 oferta_outras_informacoes, 
                 oferta_data_publicacao, 
-                oferta_ativa
+                oferta_ativa,
+                imagem: urlImagem
             };
             return response.status(200).json({
                 sucesso: true, 
