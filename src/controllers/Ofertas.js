@@ -77,7 +77,8 @@ module.exports = {
     async editarOfertas(request, response) {
         try {
             const { id } = request.params;
-            const payload = request.body || {};
+            const payload = request.body;
+            const imagem = request.file ? request.file.filename : null;
             // Confere existência da oferta
             const [exist] = await db.query(
                 'SELECT oferta_id, CAST(oferta_ativa AS UNSIGNED) AS oferta_ativa FROM OFERTAS WHERE oferta_id = ?',
@@ -136,16 +137,30 @@ module.exports = {
                     dados: null
                 });
             }
+            let sqlUpdate, valuesUpdate;
+            if (imagem) {
+                sqlUpdate = `UPDATE OFERTAS SET oferta_imagem = ? WHERE oferta_id = ?`;
+                valuesUpdate = [imagem, id];
+                await db.query(sqlUpdate, valuesUpdate);
+            }
             // Executa o update no banco de dados
             const sql = `UPDATE OFERTAS SET ${sets.join(', ')} WHERE oferta_id = ?`;
             values.push(id);
             const [result] = await db.query(sql, values);
+            // Gera a URL pública da imagem
+            const urlImagem = imagem ? gerarUrl(imagem, 'ofertas', 'padrao.jpg') : null;
+            const dados = {
+                oferta_id: id,
+                ...payload,
+                imagem: urlImagem
+            };
             // Retorna resultado da operação
             return response.status(200).json({
                 sucesso: true,
                 mensagem: `Oferta ${id} atualizada com sucesso.`,
                 linhas_afetadas: result.affectedRows,
-                campos_alterados: sets.length
+                campos_alterados: sets.length,
+                dados
             });
         } catch (error) {
             return response.status(500).json({

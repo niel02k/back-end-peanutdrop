@@ -36,16 +36,13 @@ module.exports = {
         usu_telefone,
         usu_data_cadastro,
       } = request.body;
-
-      // Criptografar senha
+      const usu_imagem = request.file ? request.file.filename : null;
       const senhaCriptografada = await crypto.hashPassword(usu_senha);
-
       const sql = `
-                        INSERT INTO USUARIOS 
-                        (usu_tipo_usuario, usu_nome, usu_documento, usu_email, usu_senha, usu_endereco, usu_telefone, usu_data_cadastro) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-                    `;
-
+        INSERT INTO USUARIOS 
+        (usu_tipo_usuario, usu_nome, usu_documento, usu_email, usu_senha, usu_endereco, usu_telefone, usu_data_cadastro, usu_imagem) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `;
       const values = [
         usu_tipo_usuario,
         usu_nome,
@@ -55,15 +52,17 @@ module.exports = {
         usu_endereco,
         usu_telefone,
         usu_data_cadastro,
+        usu_imagem
       ];
-
       const [result] = await db.query(sql, values);
-
+      const { gerarUrl } = require('../utils/gerarUrl');
+      const imagemUrl = usu_imagem ? gerarUrl(usu_imagem, 'usuarios', 'padrao.jpg') : null;
       const dados = {
         id: result.insertId,
         nome: usu_nome,
         email: usu_email,
         tipo: usu_tipo_usuario,
+        imagem: imagemUrl
       };
       return response.status(200).json({
         sucesso: true,
@@ -82,27 +81,28 @@ module.exports = {
     try {
       const { id } = request.params;
       const { nome, email, senha, endereco, telefone } = request.body;
-
+      const usu_imagem = request.file ? request.file.filename : null;
       let senhaCriptografada = senha;
       if (senha) {
         senhaCriptografada = await crypto.hashPassword(senha);
       }
-
-      const sql = `
-                UPDATE USUARIOS 
-                SET 
-                    usu_nome = ?, 
-                    usu_email = ?, 
-                    usu_senha = ?, 
-                    usu_endereco = ?, 
-                    usu_telefone = ?
-                WHERE usu_id = ?
-            `;
-
-      const values = [nome, email, senhaCriptografada, endereco, telefone, id];
-
+      let sql, values;
+      if (usu_imagem) {
+        sql = `
+          UPDATE USUARIOS 
+          SET usu_nome = ?, usu_email = ?, usu_senha = ?, usu_endereco = ?, usu_telefone = ?, usu_imagem = ?
+          WHERE usu_id = ?
+        `;
+        values = [nome, email, senhaCriptografada, endereco, telefone, usu_imagem, id];
+      } else {
+        sql = `
+          UPDATE USUARIOS 
+          SET usu_nome = ?, usu_email = ?, usu_senha = ?, usu_endereco = ?, usu_telefone = ?
+          WHERE usu_id = ?
+        `;
+        values = [nome, email, senhaCriptografada, endereco, telefone, id];
+      }
       const [result] = await db.query(sql, values);
-
       if (result.affectedRows === 0) {
         return response.status(404).json({
           sucesso: false,
@@ -110,16 +110,16 @@ module.exports = {
           dados: null,
         });
       }
-
+      const { gerarUrl } = require('../utils/gerarUrl');
+      const imagemUrl = usu_imagem ? gerarUrl(usu_imagem, 'usuarios', 'padrao.jpg') : null;
       const dados = {
         id,
         nome,
         email,
         telefone,
         endereco,
-        senha: undefined,
+        imagem: imagemUrl
       };
-
       return response.status(200).json({
         sucesso: true,
         mensagem: `Usuário ${id} atualizado com sucesso`,

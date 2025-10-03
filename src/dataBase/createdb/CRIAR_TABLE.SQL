@@ -2,6 +2,7 @@ CREATE TABLE USUARIOS (
     usu_id INT PRIMARY KEY AUTO_INCREMENT,
     usu_tipo_usuario tinyint NOT NULL,
     usu_nome VARCHAR(255) NOT NULL,
+    usu_imagem VARCHAR(255) NULL,
     usu_documento VARCHAR(20) UNIQUE NOT NULL,
     usu_email VARCHAR(255) UNIQUE NOT NULL,
     usu_senha VARCHAR(255) NOT NULL,

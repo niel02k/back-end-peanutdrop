@@ -5,11 +5,12 @@ const NegociacoesController = require('../controllers/negociacoes');
 const MensagemsController = require('../controllers/Mensagem'); 
 const UsuariosController = require('../controllers/usuarios');
 const { route } = require('./routes-calebe');
+const { uploadUsuarios } = require('../utils/uploadHelper');
 
 // CRUD básico
 router.get('/usuarios', UsuariosController.listarUsuarios);
-router.post('/usuarios', UsuariosController.cadastrarUsuarios);
-router.patch('/usuarios/:id', UsuariosController.editarUsuarios);
+router.post('/usuarios', uploadUsuarios.single('usu_imagem'), UsuariosController.cadastrarUsuarios);
+router.patch('/usuarios/:id', uploadUsuarios.single('usu_imagem'), UsuariosController.editarUsuarios);
 router.delete('/usuarios/:id', UsuariosController.apagarUsuarios);
 // Login
 router.post('/usuarios/login', UsuariosController.login);

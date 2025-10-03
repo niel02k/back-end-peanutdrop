@@ -16,6 +16,8 @@ app.use('/uploads/demandas', express.static(__dirname + '/uploads/demandas'));
 app.use('/uploads/agr_certificacoes', express.static(__dirname + '/uploads/agr_certificacoes'));
 // Servir arquivos estáticos da pasta uploads/ofertas
 app.use('/uploads/ofertas', express.static(__dirname + '/uploads/ofertas'));
+// Servir arquivos estáticos da pasta uploads/usuarios
+app.use('/uploads/usuarios', express.static(__dirname + '/uploads/usuarios'));
 
 const porta = process.env.PORT || 3333;
 
