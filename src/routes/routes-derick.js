@@ -13,7 +13,7 @@ router.delete('/Empresas/:id', EmpresasController.apagarEmpresas);
 router.get('/Empresas/filtro', EmpresasController.listarEmpresasFiltro);
 
 router.get('/Demandas', DemandasController.listarDemandas); 
-router.post('/Demandas', upload.single('imagem'), DemandasController.cadastrarDemandas); 
+// router.post('/Demandas', upload.single('imagem'), DemandasController.cadastrarDemandas); 
 router.patch('/Demandas/:id', DemandasController.editarDemandas); 
 router.delete('/Demandas/:id', DemandasController.apagarDemandas); 
 router.get('/Demandas/filtro', DemandasController.listarDemandasFiltro);

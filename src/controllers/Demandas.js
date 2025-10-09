@@ -11,11 +11,14 @@ module.exports = {
         try {
 
             const sql = `
-            SELECT
-                demanda_id, emp_id, amen_id, demanda_quantidade, demanda_preco_maximo,
-                demanda_data_entrega, demanda_outras_informacoes, demanda_data_publicacao, demanda_ativa = 1 AS usu_ativo
-            FROM DEMANDAS;
-                        `;
+              SELECT
+                dm.demanda_id, dm.emp_id, emp.emp_nome_fantasia, dm.amen_id, am.amen_variedade, 
+                dm.demanda_quantidade, dm.demanda_preco_maximo, dm.demanda_data_entrega, 
+                dm.demanda_outras_informacoes, dm.demanda_data_publicacao, dm.demanda_ativa = 1 AS usu_ativo
+              FROM DEMANDAS dm  
+              INNER JOIN empresas emp ON dm.emp_id = emp.emp_id 
+              INNER JOIN amendoins am ON dm.amen_id = am.amen_id;
+            `;
             
             const [rows] = await db.query(sql);
 
