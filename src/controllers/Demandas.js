@@ -14,7 +14,7 @@ module.exports = {
               SELECT
                 dm.demanda_id, dm.emp_id, emp.emp_nome_fantasia, dm.amen_id, am.amen_variedade, 
                 dm.demanda_quantidade, dm.demanda_preco_maximo, dm.demanda_data_entrega, 
-                dm.demanda_outras_informacoes, dm.demanda_data_publicacao, dm.demanda_ativa = 1 AS usu_ativo
+                dm.demanda_outras_informacoes, dm.demanda_data_publicacao , dm.demanda_imagem, dm.demanda_ativa = 1 AS usu_ativo
               FROM DEMANDAS dm  
               INNER JOIN empresas emp ON dm.emp_id = emp.emp_id 
               INNER JOIN amendoins am ON dm.amen_id = am.amen_id;

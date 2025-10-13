@@ -2,8 +2,10 @@ const fse = require('fs-extra');
 const path = require('path');
 const { URL } = require('url');
 
-const UPLOADS_ROOT_PATH = path.join(process.cwd(), 'uploads');
+const PUBLIC_ROOT_PATH = path.join(process.cwd(), 'public' );  
 const API_URL = process.env.API_BASE_URL || 'http://localhost:3333';
+
+
 
 function gerarUrl(nomeArquivo, pasta, arquivoPadrao) {
   const arquivoVerificar = nomeArquivo || arquivoPadrao;
