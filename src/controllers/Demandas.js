@@ -39,69 +39,82 @@ module.exports = {
         }
     }, 
     async cadastrarDemandas(request, response) {
-        try {
-            const {emp_id, amen_id, quantidade, preco_maximo, data_entrega, informacoes, data_publi, ativa} = request.body;
-            const imagem = request.file ? request.file.filename : null;
-            // Validações conforme apostila 005
-            if (!isNum(emp_id)) {
-                return response.status(422).json({ sucesso: false, mensagem: 'emp_id obrigatório e deve ser número.' });
-            }
-            if (!isNum(amen_id)) {
-                return response.status(422).json({ sucesso: false, mensagem: 'amen_id obrigatório e deve ser número.' });
-            }
-            if (!isNumPos(quantidade)) {
-                return response.status(422).json({ sucesso: false, mensagem: 'quantidade obrigatória e deve ser >= 0.' });
-            }
-            if (!isNumPos(preco_maximo)) {
-                return response.status(422).json({ sucesso: false, mensagem: 'preco_maximo obrigatório e deve ser >= 0.' });
-            }
-            if (!isDate(data_entrega)) {
-                return response.status(422).json({ sucesso: false, mensagem: 'data_entrega obrigatória e inválida.' });
-            }
-            if (!isDate(data_publi)) {
-                return response.status(422).json({ sucesso: false, mensagem: 'data_publi obrigatória e inválida.' });
-            }
-            if (![0,1,'0','1',true,false].includes(ativa)) {
-                return response.status(422).json({ sucesso: false, mensagem: 'ativa obrigatória e deve ser 0/1 (ou booleano).' });
-            }
-            // informacoes pode ser vazio/null
-
-            //instruções sql
-            const sql = `
-                INSERT INTO DEMANDAS
-                    (emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, demanda_data_entrega, demanda_outras_informacoes, demanda_data_publicacao, demanda_ativa, demanda_imagem) 
-                VALUES
-                    (?, ?, ? ,? ,? ,? ,? ,?, ?);
-            `;
-            const values = [emp_id, amen_id, quantidade, preco_maximo, data_entrega, informacoes, data_publi, ativa, imagem];
-            const [result] = await db.query(sql, values);
-            // Gera a URL pública da imagem
-            const urlImagem = imagem ? gerarUrl(imagem, 'demandas', 'padrao.jpg') : null;
-            const dados= {
-                emp_id,
-                amen_id,
-                quantidade,
-                preco_maximo,
-                data_entrega,
-                informacoes,
-                data_publi,
-                ativa,
-                imagem: urlImagem
-            };
-
-            return response.status(200).json({
-                sucesso: true, 
-                mensagem: 'Cadastro de Demandas', 
-                dados: dados
-            });
-        } catch (error) {
-            return response.status(500).json({
-                sucesso: false, 
-                mensagem: 'Erro na requisição.', 
-                dados: error.message
-            });
+    try {
+        const {emp_id, amen_id, quantidade, preco_maximo, data_entrega, informacoes, data_publi, ativa, imagem} = request.body;
+        
+        // VERIFICA SE TEM UPLOAD OU URL
+        let imagemFinal = null;
+        let urlImagem = null;
+        
+        if (request.file) {
+            // Tem upload de arquivo
+            imagemFinal = request.file.filename;
+            urlImagem = gerarUrl(imagemFinal, 'demandas', 'padrao.jpg');
+        } else if (imagem) {
+            // Tem URL no body - usa diretamente
+            imagemFinal = imagem; // Salva a URL no banco
+            urlImagem = imagem;   // Retorna a URL
         }
-    }, 
+        // Se não tiver nenhum, ambos ficam null
+
+        // Validações (mantenha as mesmas)
+        if (!isNum(emp_id)) {
+            return response.status(422).json({ sucesso: false, mensagem: 'emp_id obrigatório e deve ser número.' });
+        }
+        if (!isNum(amen_id)) {
+            return response.status(422).json({ sucesso: false, mensagem: 'amen_id obrigatório e deve ser número.' });
+        }
+        if (!isNumPos(quantidade)) {
+            return response.status(422).json({ sucesso: false, mensagem: 'quantidade obrigatória e deve ser >= 0.' });
+        }
+        if (!isNumPos(preco_maximo)) {
+            return response.status(422).json({ sucesso: false, mensagem: 'preco_maximo obrigatório e deve ser >= 0.' });
+        }
+        if (!isDate(data_entrega)) {
+            return response.status(422).json({ sucesso: false, mensagem: 'data_entrega obrigatória e inválida.' });
+        }
+        if (!isDate(data_publi)) {
+            return response.status(422).json({ sucesso: false, mensagem: 'data_publi obrigatória e inválida.' });
+        }
+        if (![0,1,'0','1',true,false].includes(ativa)) {
+            return response.status(422).json({ sucesso: false, mensagem: 'ativa obrigatória e deve ser 0/1 (ou booleano).' });
+        }
+
+        // instruções sql
+        const sql = `
+            INSERT INTO DEMANDAS
+                (emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, demanda_data_entrega, demanda_outras_informacoes, demanda_data_publicacao, demanda_ativa, demanda_imagem) 
+            VALUES
+                (?, ?, ? ,? ,? ,? ,? ,?, ?);
+        `;
+        const values = [emp_id, amen_id, quantidade, preco_maximo, data_entrega, informacoes, data_publi, ativa, imagemFinal];
+        const [result] = await db.query(sql, values);
+
+        const dados = {
+            emp_id,
+            amen_id,
+            quantidade,
+            preco_maximo,
+            data_entrega,
+            informacoes,
+            data_publi,
+            ativa,
+            imagem: gerarUrl(imagemFinal, 'demandas', 'padrao.jpg') 
+        };
+
+        return response.status(200).json({
+            sucesso: true, 
+            mensagem: 'Cadastro de Demandas', 
+            dados: dados
+        });
+    } catch (error) {
+        return response.status(500).json({
+            sucesso: false, 
+            mensagem: 'Erro na requisição.', 
+            dados: error.message
+        });
+    }
+},
 // PATCH /demandas/:id — update dinâmico + retorno do diff
   async editarDemandas(request, response) {
     try {
