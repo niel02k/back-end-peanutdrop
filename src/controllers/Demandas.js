@@ -24,11 +24,17 @@ module.exports = {
 
             const nRegistros = rows.length;
 
+            const dados = rows.map(demandas => ({
+              ...demandas,
+              demanda_imagem: gerarUrl(demandas.demanda_imagem, 'demandas', 'padrao.jpg') 
+            }));
+
+
             return response.status(200).json({
                 sucesso: true, 
                 mensagem: 'Lista de Demandas', 
-                resultado: nRegistros,
-                dados: rows
+                nRegistros,
+                dados,
             });
         } catch (error) {
             return response.status(500).json({
@@ -54,7 +60,11 @@ module.exports = {
             // Tem URL no body - usa diretamente
             imagemFinal = imagem; // Salva a URL no banco
             urlImagem = imagem;   // Retorna a URL
-        }
+        }  else {
+            // Não tem upload nem URL - usa imagem padrão
+            imagemFinal = 'padrao.jpg';
+            urlImagem = gerarUrl('padrao.jpg', 'demandas', 'padrao.jpg');
+          }
         // Se não tiver nenhum, ambos ficam null
 
         // Validações (mantenha as mesmas)
@@ -99,7 +109,7 @@ module.exports = {
             informacoes,
             data_publi,
             ativa,
-            imagem: gerarUrl(imagemFinal, 'demandas', 'padrao.jpg') 
+            imagem: urlImagem
         };
 
         return response.status(200).json({
@@ -281,97 +291,104 @@ module.exports = {
         }
     },
     async listarDemandasFiltro(req, res) {
-        try {
-          const {
-            emp_id, amen_id, min_quantidade, max_quantidade, min_preco, max_preco, de_entrega, ate_entrega, texto, ativa
-          } = req.query;
-    
-          const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
-          const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
-          const offset = (page - 1) * limit;
-    
-          const where = [];
-          const values = [];
-    
-          if (emp_id && !isNaN(emp_id)) {
-            where.push('d.emp_id = ?');
-            values.push(Number(emp_id));
-          }
-          if (amen_id && !isNaN(amen_id)) {
-            where.push('d.amen_id = ?');
-            values.push(Number(amen_id));
-          }
-          if (min_quantidade && !isNaN(min_quantidade)) {
-            where.push('d.demanda_quantidade >= ?');
-            values.push(Number(min_quantidade));
-          }
-          if (max_quantidade && !isNaN(max_quantidade)) {
-            where.push('d.demanda_quantidade <= ?');
-            values.push(Number(max_quantidade));
-          }
-          if (min_preco && !isNaN(min_preco)) {
-            where.push('d.demanda_preco_maximo >= ?');
-            values.push(Number(min_preco));
-          }
-          if (max_preco && !isNaN(max_preco)) {
-            where.push('d.demanda_preco_maximo <= ?');
-            values.push(Number(max_preco));
-          }
-          if (de_entrega && de_entrega.trim() !== '') {
-            where.push('d.demanda_data_entrega >= ?');
-            values.push(de_entrega);
-          }
-          if (ate_entrega && ate_entrega.trim() !== '') {
-            where.push('d.demanda_data_entrega <= ?');
-            values.push(ate_entrega);
-          }
-          if (texto && texto.trim() !== '') {
-            where.push('d.demanda_outras_informacoes LIKE ?');
-            values.push(`%${texto}%`);
-          }
-          if (ativa !== undefined && ativa !== '') {
-            where.push('(d.demanda_ativa + 0) = ?');
-            values.push(Number(ativa) ? 1 : 0);
-          }
-    
-          const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
-    
-          const selectSql =
-            'SELECT ' +
-            '  d.demanda_id, ' +
-            '  d.emp_id, ' +
-            '  d.amen_id, ' +
-            '  d.demanda_quantidade, ' +
-            '  d.demanda_preco_maximo, ' +
-            '  d.demanda_data_entrega, ' +
-            '  d.demanda_outras_informacoes, ' +
-            '  d.demanda_data_publicacao, ' +
-            '  (d.demanda_ativa + 0) AS demanda_ativa ' +
-            'FROM DEMANDAS d ' +
-            whereSql +
-            ' ORDER BY d.demanda_id DESC ' +
-            'LIMIT ? OFFSET ?';
-    
-          const countSql =
-            'SELECT COUNT(*) AS total ' +
-            'FROM DEMANDAS d ' +
-            whereSql;
-    
-          const [rows]   = await db.query(selectSql, [...values, limit, offset]);
-          const [countR] = await db.query(countSql, values);
-          const total = countR[0]?.total || 0;
-    
-          return res.status(200).json({
-            sucesso: true,
-            mensagem: 'Lista de demandas (filtros)',
-            pagina: page,
-            limite: limit,
-            total,
-            itens: rows.length,
-            dados: rows
-          });
-        } catch (error) {
-          return res.status(500).json({ sucesso: false, mensagem: 'Erro ao listar demandas', dados: error.message });
-        }
+    try {
+      const {
+        emp_id, amen_id, min_quantidade, max_quantidade, min_preco, max_preco, de_entrega, ate_entrega, texto, ativa
+      } = req.query;
+
+      const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
+      const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
+      const offset = (page - 1) * limit;
+
+      const where = [];
+      const values = [];
+
+      if (emp_id && !isNaN(emp_id)) {
+        where.push('d.emp_id = ?');
+        values.push(Number(emp_id));
       }
+      if (amen_id && !isNaN(amen_id)) {
+        where.push('d.amen_id = ?');
+        values.push(Number(amen_id));
+      }
+      if (min_quantidade && !isNaN(min_quantidade)) {
+        where.push('d.demanda_quantidade >= ?');
+        values.push(Number(min_quantidade));
+      }
+      if (max_quantidade && !isNaN(max_quantidade)) {
+        where.push('d.demanda_quantidade <= ?');
+        values.push(Number(max_quantidade));
+      }
+      if (min_preco && !isNaN(min_preco)) {
+        where.push('d.demanda_preco_maximo >= ?');
+        values.push(Number(min_preco));
+      }
+      if (max_preco && !isNaN(max_preco)) {
+        where.push('d.demanda_preco_maximo <= ?');
+        values.push(Number(max_preco));
+      }
+      if (de_entrega && de_entrega.trim() !== '') {
+        where.push('d.demanda_data_entrega >= ?');
+        values.push(de_entrega);
+      }
+      if (ate_entrega && ate_entrega.trim() !== '') {
+        where.push('d.demanda_data_entrega <= ?');
+        values.push(ate_entrega);
+      }
+      if (texto && texto.trim() !== '') {
+        where.push('d.demanda_outras_informacoes LIKE ?');
+        values.push(`%${texto}%`);
+      }
+      if (ativa !== undefined && ativa !== '') {
+        where.push('(d.demanda_ativa + 0) = ?');
+        values.push(Number(ativa) ? 1 : 0);
+      }
+
+      const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+
+      const selectSql =
+        'SELECT ' +
+        '  d.demanda_id, ' +
+        '  d.emp_id, ' +
+        '  d.amen_id, ' +
+        '  d.demanda_quantidade, ' +
+        '  d.demanda_preco_maximo, ' +
+        '  d.demanda_data_entrega, ' +
+        '  d.demanda_outras_informacoes, ' +
+        '  d.demanda_data_publicacao, ' +
+        '  d.demanda_imagem, ' + // ⚠️ ADICIONE ESTE CAMPO
+        '  (d.demanda_ativa + 0) AS demanda_ativa ' +
+        'FROM DEMANDAS d ' +
+        whereSql +
+        ' ORDER BY d.demanda_id DESC ' +
+        'LIMIT ? OFFSET ?';
+
+      const countSql =
+        'SELECT COUNT(*) AS total ' +
+        'FROM DEMANDAS d ' +
+        whereSql;
+
+      const [rows]   = await db.query(selectSql, [...values, limit, offset]);
+      const [countR] = await db.query(countSql, values);
+      const total = countR[0]?.total || 0;
+
+      // ⚠️ ADICIONE O MAP PARA GERAR URL DAS IMAGENS
+      const dados = rows.map(demanda => ({
+        ...demanda,
+        demanda_imagem: gerarUrl(demanda.demanda_imagem, 'demandas', 'padrao.jpg')
+      }));
+
+      return res.status(200).json({
+        sucesso: true,
+        mensagem: 'Lista de demandas (filtros)',
+        pagina: page,
+        limite: limit,
+        total,
+        itens: dados.length,
+        dados: dados // ⚠️ RETORNE OS DADOS PROCESSADOS
+      });
+    } catch (error) {
+      return res.status(500).json({ sucesso: false, mensagem: 'Erro ao listar demandas', dados: error.message });
+    }
+  }
 };

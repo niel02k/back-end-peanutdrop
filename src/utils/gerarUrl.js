@@ -9,13 +9,13 @@ const API_URL = process.env.API_BASE_URL || 'http://localhost:3333';
 
 function gerarUrl(nomeArquivo, pasta, arquivoPadrao) {
   const arquivoVerificar = nomeArquivo || arquivoPadrao;
-  const caminhoFisico = path.join(UPLOADS_ROOT_PATH, pasta, arquivoVerificar);
+  const caminhoFisico = path.join(PUBLIC_ROOT_PATH, pasta, arquivoVerificar);
 
   let caminhoRelativo;
   if (nomeArquivo && fse.existsSync(caminhoFisico)) {
-    caminhoRelativo = path.join('/uploads', pasta, nomeArquivo);
+    caminhoRelativo = path.join('/public', pasta, nomeArquivo);
   } else {
-    caminhoRelativo = path.join('/uploads', pasta, arquivoPadrao);
+    caminhoRelativo = path.join('/public', pasta, arquivoPadrao);
   }
   const caminhoRelativoFormatado = caminhoRelativo.replace(/\\/g, '/');
   const urlCompleta = new URL(caminhoRelativoFormatado, API_URL);

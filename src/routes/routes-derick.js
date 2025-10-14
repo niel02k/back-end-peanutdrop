@@ -6,6 +6,7 @@ const DemandasController = require('../controllers/Demandas');  // ← COM "D" m
 const PropostasController = require('../controllers/Propostas'); 
 const multer = require('multer');
 const upload = multer({ dest: 'uploads/' });
+const { gerarUrl } = require('../utils/gerarUrl');  
 
 router.get('/Empresas', EmpresasController.listarEmpresas); 
 router.post('/Empresas', EmpresasController.cadastrarEmpresas); 
