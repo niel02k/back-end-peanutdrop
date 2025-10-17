@@ -14,7 +14,7 @@ module.exports = {
               SELECT
                 dm.demanda_id, dm.emp_id, emp.emp_nome_fantasia, dm.amen_id, am.amen_variedade, 
                 dm.demanda_quantidade, dm.demanda_preco_maximo, dm.demanda_data_entrega, 
-                dm.demanda_outras_informacoes, dm.demanda_data_publicacao , dm.demanda_imagem, dm.demanda_ativa = 1 AS usu_ativo
+                dm.demanda_outras_informacoes, dm.demanda_data_publicacao , dm.demanda_imagem, dm.demanda_ativa = 1 AS demanda_ativa
               FROM DEMANDAS dm  
               INNER JOIN empresas emp ON dm.emp_id = emp.emp_id 
               INNER JOIN amendoins am ON dm.amen_id = am.amen_id;
@@ -26,7 +26,7 @@ module.exports = {
 
             const dados = rows.map(demandas => ({
               ...demandas,
-              demanda_imagem: gerarUrl(demandas.demanda_imagem, 'demandas', 'padrao.jpg') 
+              demanda_imagem: gerarUrl(demandas.demanda_imagem) 
             }));
 
 
@@ -55,16 +55,16 @@ module.exports = {
        if (request.file) {
           // Tem upload de arquivo
            imagemFinal = request.file.filename;
-           urlImagem = gerarUrl(imagemFinal, 'demandas', 'padrao.jpg');
-         } else if (imagem && /^https?:\/\//i.test(imagem)) {
-        // É uma URL externa
-           imagemFinal = imagem;
-           urlImagem = imagem;
-        } else if (imagem) {
-        // É só o nome do arquivo
-          imagemFinal = imagem;
-          urlImagem = gerarUrl(imagemFinal, 'demandas');
-         }
+           urlImagem = gerarUrl(imagemFinal, 'demandas');
+         } else if (imagem) {
+    // Tem URL no body - usa diretamente
+    imagemFinal = imagem; // ← Isso deveria salvar a URL
+    urlImagem = imagem;   // ← Mas você está salvando 'padrao.jpg' abaixo!
+} else {
+    // Não tem upload nem URL - usa imagem padrão
+    imagemFinal = 'padrao.jpg'; // ← AQUI ESTÁ O PROBLEMA!
+    urlImagem = gerarUrl('padrao.jpg', 'demandas', 'padrao.jpg');
+}
         // Se não tiver nenhum, ambos ficam null
 
         // Validações (mantenha as mesmas)
