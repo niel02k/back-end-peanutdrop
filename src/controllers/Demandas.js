@@ -52,19 +52,19 @@ module.exports = {
         let imagemFinal = null;
         let urlImagem = null;
         
-        if (request.file) {
-            // Tem upload de arquivo
-            imagemFinal = request.file.filename;
-            urlImagem = gerarUrl(imagemFinal, 'demandas', 'padrao.jpg');
-        } else if (imagem) {
-            // Tem URL no body - usa diretamente
-            imagemFinal = imagem; // Salva a URL no banco
-            urlImagem = imagem;   // Retorna a URL
-        }  else {
-            // Não tem upload nem URL - usa imagem padrão
-            imagemFinal = 'padrao.jpg';
-            urlImagem = gerarUrl('padrao.jpg', 'demandas', 'padrao.jpg');
-          }
+       if (request.file) {
+    // Tem upload de arquivo
+    imagemFinal = request.file.filename;
+    urlImagem = gerarUrl(imagemFinal, 'demandas', 'padrao.jpg');
+} else if (imagem && /^https?:\/\//i.test(imagem)) {
+    // É uma URL externa
+    imagemFinal = imagem;
+    urlImagem = imagem;
+} else if (imagem) {
+    // É só o nome do arquivo
+    imagemFinal = imagem;
+    urlImagem = gerarUrl(imagemFinal, 'demandas', 'padrao.jpg');
+}
         // Se não tiver nenhum, ambos ficam null
 
         // Validações (mantenha as mesmas)
@@ -98,10 +98,10 @@ module.exports = {
                 (?, ?, ? ,? ,? ,? ,? ,?, ?);
         `;
         const values = [emp_id, amen_id, quantidade, preco_maximo, data_entrega, informacoes, data_publi, ativa, imagemFinal];
-        const [result] = await db.query(sql, values);
+        const [rows] = await db.query(sql, values);
 
         const dados = {
-            emp_id,
+            emp_id: rows.insertId,  
             amen_id,
             quantidade,
             preco_maximo,
