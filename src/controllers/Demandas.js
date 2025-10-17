@@ -53,18 +53,18 @@ module.exports = {
         let urlImagem = null;
         
        if (request.file) {
-    // Tem upload de arquivo
-    imagemFinal = request.file.filename;
-    urlImagem = gerarUrl(imagemFinal, 'demandas', 'padrao.jpg');
-} else if (imagem && /^https?:\/\//i.test(imagem)) {
-    // É uma URL externa
-    imagemFinal = imagem;
-    urlImagem = imagem;
-} else if (imagem) {
-    // É só o nome do arquivo
-    imagemFinal = imagem;
-    urlImagem = gerarUrl(imagemFinal, 'demandas', 'padrao.jpg');
-}
+          // Tem upload de arquivo
+           imagemFinal = request.file.filename;
+           urlImagem = gerarUrl(imagemFinal, 'demandas', 'padrao.jpg');
+         } else if (imagem && /^https?:\/\//i.test(imagem)) {
+        // É uma URL externa
+           imagemFinal = imagem;
+           urlImagem = imagem;
+        } else if (imagem) {
+        // É só o nome do arquivo
+          imagemFinal = imagem;
+          urlImagem = gerarUrl(imagemFinal, 'demandas');
+         }
         // Se não tiver nenhum, ambos ficam null
 
         // Validações (mantenha as mesmas)
