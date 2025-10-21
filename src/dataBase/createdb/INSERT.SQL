@@ -59,7 +59,7 @@ INSERT INTO AGR_CERTIFICACOES (agri_id, cert_id, agr_local, agr_data, agr_arquiv
 (3, 3, NULL, NULL, NULL, NULL); -- Sem certificação
 
 -- Inserindo demandas (3 demandas)
-INSERT INTO DEMANDAS (emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, demanda_data_entrega, demanda_outras_informacoes, demanda_data_publicacao, demanda_ativa) VALUES
+INSERT INTO DEMANDAS (emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, demanda_data_entrega, demanda_outras_informacoes, demanda_data_publicacao,demanda_imagem, demanda_ativa) VALUES
 (1, 1, 1000, 5.50, '2025-04-10', 'Entrega no Porto de Santos', '2025-03-15', 1),
 (2, 2, 1500, 6.00, '2025-04-20', 'Necessário embalagem a vácuo', '2025-03-16', 1),
 (3, 3, 2000, 5.80, '2025-05-05', 'Frete incluso', '2025-03-17', 1);
