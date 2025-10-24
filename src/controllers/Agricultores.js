@@ -1,4 +1,5 @@
 const db = require('../dataBase/connection'); 
+const { gerarUrl} = require ('../utils/gerarUrl');
 
 module.exports = {
     // Listagem de agricultores
@@ -36,9 +37,24 @@ module.exports = {
     // Insere um novo agricultor no banco de dados
     async cadastrarAgricultores(request, response) {
         try {
-
-            const { agri_localizacao_propriedade, agri_tipos_amendoim_cultivados, agri_certificacoes, agri_outras_informacoes } = request.body;
             
+            const { agri_localizacao_propriedade, agri_tipos_amendoim_cultivados, agri_certificacoes, agri_outras_informacoes } = request.body;
+            let imagemFinal = null;
+            let urlImagem = null;
+
+            if (request.file) {
+        // Tem upload de arquivo
+        imagemFinal = request.file.filename;
+        urlImagem = gerarUrl(imagemFinal, 'agricultores');
+      } else if (imagem) {
+        // Tem URL no body - usa diretamente
+        imagemFinal = imagem; // ← Isso deveria salvar a URL
+        urlImagem = imagem;   // ← Mas você está salvando 'padrao.jpg' abaixo!
+      } else {
+        // Não tem upload nem URL - usa imagem padrão
+        imagemFinal = 'padrao.jpg'; // ← AQUI ESTÁ O PROBLEMA!
+        urlImagem = gerarUrl('padrao.jpg', 'agricultores', 'padrao.jpg');
+      }
             // Instrução SQL
             const sql = `
                INSERT INTO AGRICULTORES (agri_localizacao_propriedade, 
