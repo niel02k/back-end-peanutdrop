@@ -17,7 +17,8 @@ CREATE TABLE EMPRESAS (
     emp_nome_fantasia VARCHAR(255) NOT NULL,
     emp_tipo_atividade VARCHAR(255),
     emp_telefone VARCHAR(12),
-    emp_email VARCHAR(255) UNIQUE NOT NULL
+    emp_email VARCHAR(255) UNIQUE NOT NULL,
+    emp_img VARCHAR (255)
 );
 
 
@@ -41,7 +42,8 @@ CREATE TABLE AGRICULTORES (
     agri_localizacao_propriedade VARCHAR (255),
     agri_tipos_amendoim_cultivados VARCHAR (255),
     agri_certificacoes VARCHAR (255),
-    agri_outras_informacoes VARCHAR (255)
+    agri_outras_informacoes VARCHAR (255),
+    agri_img VARCHAR (255)
 );
 
 CREATE TABLE RASTREAMENTO_PRODUCAO (
@@ -66,10 +68,9 @@ CREATE TABLE DEMANDAS (
     demanda_outras_informacoes VARCHAR (255),
     demanda_data_publicacao DATE,
     demanda_ativa BIT,
-    demanda_imagem VARCHAR(255) NULL,
+    demanda_imagem VARCHAR (255),
     FOREIGN KEY (emp_id) REFERENCES EMPRESAS(emp_id),
     FOREIGN KEY (amen_id) REFERENCES AMENDOINS(amen_id)
-    
 );
 
 CREATE TABLE AGR_CERTIFICACOES (
@@ -94,7 +95,7 @@ CREATE TABLE OFERTAS (
     oferta_outras_informacoes VARCHAR(255),
     oferta_data_publicacao DATE,
     oferta_ativa BIT,
-    oferta_imagem VARCHAR(255) NULL,
+    oferta_img VARCHAR (255),
     FOREIGN KEY (agri_id) REFERENCES AGRICULTORES(agri_id),
     FOREIGN KEY (amen_id) REFERENCES AMENDOINS(amen_id)
 );
@@ -121,7 +122,7 @@ CREATE TABLE PROPOSTA (
 );
 
 CREATE TABLE MENSAGENS (
-    menegoc_id INT NOT NULL,
+	mens_id INT PRIMARY KEY AUTO_INCREMENT,
     id_usuario_remetente INT NOT NULL,
     negoc_id INT NOT NULL,
     mens_conteudo VARCHAR(255),
@@ -130,6 +131,7 @@ CREATE TABLE MENSAGENS (
     FOREIGN KEY (negoc_id) REFERENCES NEGOCIACOES(negoc_id),
     FOREIGN KEY (id_usuario_remetente) REFERENCES USUARIOS(usu_id)
 );
+
 
 CREATE TABLE CONTRATOS (
     contrato_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -154,6 +156,5 @@ CREATE TABLE NOTAS_FISCAIS (
     nota_fiscal_numero VARCHAR(64) NOT NULL,
     nota_fiscal_data_emissao DATE,
     nota_fiscal_detalhes VARCHAR(255),
-   s_id INT PRIMARY KEY AUTO_INCREMENT,
-    n FOREIGN KEY (contrato_id) REFERENCES CONTRATOS(contrato_id)
+    FOREIGN KEY (contrato_id) REFERENCES CONTRATOS(contrato_id)
 );

@@ -1,18 +1,14 @@
--- Inserindo usuários (1 ADM, 3 agricultores, 3 empresas)
-INSERT INTO USUARIOS (usu_tipo_usuario, usu_nome, usu_documento, usu_email, usu_senha, usu_endereco, usu_telefone, usu_data_cadastro) VALUES
-(1, 'João Silva', '12345678900', 'joao@email.com', 'senha123', 'Rua A, 123', '11987654321', '2025-03-17'),
-(2, 'Carlos Oliveira', '23456789012', 'carlos@email.com', 'senha456', 'Fazenda Boa Vista', '11988887777', '2025-03-15'),
-(2, 'Ana Mendes', '34567890123', 'ana@email.com', 'senha789', 'Sítio Harmonia', '11977776666', '2025-03-16'),
-(2, 'Marcos Silva', '45678901234', 'marcos@email.com', 'senha000', 'Chácara Bela', '11966665555', '2025-03-18'),
-(3, 'Empresa Exemplo Ltda', '56789012345', 'empresa1@email.com', 'senha111', 'Av. Comercial, 100', '1133224455', '2025-03-14'),
-(3, 'AgroNutri SA', '67890123456', 'empresa2@email.com', 'senha222', 'Rua Industrial, 200', '1144335566', '2025-03-12'),
-(3, 'NutriFoods Ltda', '78901234567', 'empresa3@email.com', 'senha333', 'Estrada do Comércio, 300', '1155446677', '2025-03-11');
+-- Inserindo usuários (1 ADM, 3 agricultores, 3 empresas) - CORRIGIDO
+INSERT INTO USUARIOS (usu_tipo_usuario, usu_nome, usu_documento, usu_email, usu_senha, usu_endereco, usu_telefone, usu_data_cadastro, usu_imagem) VALUES
+(1, 'João Silva', '12345678900', 'joao@email.com', 'senha123', 'Rua A, 123', '11987654321', '2025-03-17','usuario1.jpg'),
+(2, 'Carlos Oliveira', '23456789012', 'carlos@email.com', 'senha456', 'Fazenda Boa Vista', '11988887777', '2025-03-15','usuario2.jpg'),
+(2, 'Ana Mendes', '34567890123', 'ana@email.com', 'senha789', 'Sítio Harmonia', '11977776666', '2025-03-16','usuario3.jpg');
 
 -- Inserindo empresas (3 empresas)
-INSERT INTO EMPRESAS (emp_razao_social, emp_nome_fantasia, emp_tipo_atividade, emp_telefone, emp_email) VALUES
-('Empresa Exemplo Ltda', 'Exemplo', 'Comércio', '1133224455', 'contato@exemplo.com'),
-('AgroNutri SA', 'AgroNutri', 'Indústria alimentícia', '1144335566', 'contato@agronutri.com'),
-('NutriFoods Ltda', 'NutriFoods', 'Distribuição', '1155446677', 'contato@nutrifoods.com');
+INSERT INTO EMPRESAS (emp_razao_social, emp_nome_fantasia, emp_tipo_atividade, emp_telefone, emp_email,emp_img) VALUES
+('Empresa Exemplo Ltda', 'Exemplo', 'Comércio', '1133224455', 'contato@exemplo.com', 'empresas1.jpg'),
+('AgroNutri SA', 'AgroNutri', 'Indústria alimentícia', '1144335566', 'contato@agronutri.com','empresas2.jpg'),
+('NutriFoods Ltda', 'NutriFoods', 'Distribuição', '1155446677', 'contato@nutrifoods.com','empresas3.jpg');
 
 -- Inserindo certificações (5 certificações)
 INSERT INTO CERTIFICACOES (cert_orgao_regulador, cert_nome) VALUES
@@ -31,10 +27,10 @@ INSERT INTO AMENDOINS (amen_variedade, amen_tamanho, amen_outras_caracteristicas
 ('Florunner', 'Grande', 'Resistente a pragas');
 
 -- Inserindo agricultores (3 agricultores)
-INSERT INTO AGRICULTORES (agri_localizacao_propriedade, agri_tipos_amendoim_cultivados, agri_certificacoes, agri_outras_informacoes) VALUES
-('Fazenda São José', 'Runner, Virginia', 'Certificação de Qualidade, Selo Orgânico', 'Solo argiloso'),
-('Sítio Boa Esperança', 'Valência, Español', 'Boas Práticas de Fabricação', 'Cultivo orgânico'),
-('Chácara Bela Vista', 'Florunner', 'ISO 22000', 'Sistema de irrigação moderno');
+INSERT INTO AGRICULTORES (agri_localizacao_propriedade, agri_tipos_amendoim_cultivados, agri_certificacoes, agri_outras_informacoes, agri_img) VALUES
+('Fazenda São José', 'Runner, Virginia', 'Certificação de Qualidade, Selo Orgânico', 'Solo argiloso', 'agricultor1.jpg'),
+('Sítio Boa Esperança', 'Valência, Español', 'Boas Práticas de Fabricação', 'Cultivo orgânico', 'agricultor2.jpg'),
+('Chácara Bela Vista', 'Florunner', 'ISO 22000', 'Sistema de irrigação moderno', 'agricultor3.jpg');
 
 -- Inserindo rastreamento de produção (4 registros por agricultor)
 INSERT INTO RASTREAMENTO_PRODUCAO (agri_id, amen_id, rast_data_plantacao, rast_data_colheita, rast_informacoes_adicionais, rast_area_plantacao) VALUES
@@ -59,19 +55,20 @@ INSERT INTO AGR_CERTIFICACOES (agri_id, cert_id, agr_local, agr_data, agr_arquiv
 (3, 3, NULL, NULL, NULL, NULL); -- Sem certificação
 
 -- Inserindo demandas (3 demandas)
-INSERT INTO DEMANDAS (emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, demanda_data_entrega, demanda_outras_informacoes, demanda_data_publicacao,demanda_imagem,  demanda_ativa) VALUES
-(1, 1, 50, 200.00, '2025-11-01', 'Sacas de amendoim cru — preço médio de R$200 por saca', '2025-10-17', 1, 'Demanda1.jpg'),
-(1, 2, 40, 210.00, '2025-11-05', 'Saca de amendoim selecionado em casca', '2025-10-17', 1, 'Demanda2.jpg'),
-(1, 3, 30, 220.00, '2025-11-10', 'Amendoim em casca seca — pronta entrega', '2025-10-17', 1, 'Demanda3.jpg');
--- Inserindo ofertas (2 ofertas)
-INSERT INTO OFERTAS (agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa) VALUES
-(1, 1, 1200, 5.20, '2025-01-15', 'Produção sem pesticidas', '2025-03-10', 1),
-(2, 2, 600, 5.80, '2024-12-20', 'Amendoim de alta qualidade', '2025-03-12', 1);
+INSERT INTO DEMANDAS (emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, demanda_data_entrega, demanda_outras_informacoes, demanda_data_publicacao, demanda_imagem, demanda_ativa) VALUES
+(1, 1, 50, 200.00, '2025-11-01', 'Sacas de amendoim cru — preço médio de R$200 por saca', '2025-10-17', 'Demanda1.jpg', 1),
+(1, 2, 40, 210.00, '2025-11-05', 'Saca de amendoim selecionado em casca', '2025-10-17', 'Demanda2.jpg', 1),
+(1, 3, 30, 220.00, '2025-11-10', 'Amendoim em casca seca — pronta entrega', '2025-10-17', 'Demanda3.jpg', 1);
+
+-- Inserindo ofertas (2 ofertas) - CORRIGIDO
+INSERT INTO OFERTAS (agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa, oferta_img) VALUES
+(1, 1, 1200, 5.20, '2025-01-15', 'Produção sem pesticidas', '2025-03-10', 1, 'Ofertas.jpg'),
+(2, 2, 600, 5.80, '2024-12-20', 'Amendoim de alta qualidade', '2025-03-12', 1, 'Ofertas2.jpg');
 
 -- Inserindo negociações (2 negociações)
 INSERT INTO NEGOCIACOES (oferta_id, demanda_id, negoc_status) VALUES
-(1, 1, 1),
-(2, 2, 1);
+(1, 4, 1),
+(2, 5, 1);
 
 -- Inserindo propostas (2 propostas)
 INSERT INTO PROPOSTA (negoc_id, emp_id, prop_preco, prop_quantidade, prop_data_envio, prop_status) VALUES
@@ -99,5 +96,3 @@ INSERT INTO PAGAMENTOS (contrato_id, pag_valor, pag_data_pagamento, pag_status) 
 INSERT INTO NOTAS_FISCAIS (contrato_id, nota_fiscal_numero, nota_fiscal_data_emissao, nota_fiscal_detalhes) VALUES
 (1, 'NF123456', '2025-04-02', 'Venda de amendoim para empresa Exemplo'),
 (2, 'NF654321', '2025-04-11', 'Venda parcelada de amendoim para AgroNutri SA');
-
--- Adicionei mais registros conforme necessário para bater com os números indicados nos comentários.

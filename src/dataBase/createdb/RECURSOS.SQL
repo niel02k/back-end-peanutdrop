@@ -1,6 +1,8 @@
 -- Desativar verificação de chaves estrangeiras temporariamente
 SET FOREIGN_KEY_CHECKS = 0;
 
+USE bd_tcc_etim_123_g3;
+
 -- 1️⃣ Tabelas com FK (devem ser removidas primeiro)
 DROP TABLE IF EXISTS NOTAS_FISCAIS;
 DROP TABLE IF EXISTS PAGAMENTOS;
@@ -29,7 +31,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 
 -- Selects
 -- 1 ADM, 3 agric, 3 emp  
-SELECT usu_id, usu_tipo_usuario, usu_nome, usu_documento, usu_email, usu_senha, usu_endereco, usu_telefone, usu_data_cadastro FROM USUARIOS;
+SELECT usu_id, usu_tipo_usuario, usu_nome, usu_documento, usu_email, usu_senha, usu_endereco, usu_telefone, usu_data_cadastro, usu_imagem FROM USUARIOS;
 
 -- 3
 SELECT emp_id, emp_razao_social, emp_nome_fantasia, emp_tipo_atividade, emp_telefone, emp_email FROM EMPRESAS;
