@@ -11,7 +11,7 @@ module.exports = {
                    SELECT
                     agri_id, agri_localizacao_propriedade, 
                     agri_tipos_amendoim_cultivados, 
-                    agri_certificacoes, agri_outras_informacoes
+                    agri_certificacoes, agri_outras_informacoes, agri_img
                   FROM AGRICULTORES;
                 `;
 
@@ -19,11 +19,16 @@ module.exports = {
 
                 const nRegistros = rows.length;
 
+                const dados = rows.map(agricultores => ({
+                    ...agricultores,
+                    agri_img: gerarUrl(agricultores.agri_img, 'agricultores', 'padrao.jpg')
+                }));
+
             return response.status(200).json({
                 sucesso: true, 
                 mensagem: 'Lista de Agricultores', 
                 nRegistros,
-                dados: rows
+                dados
             });
         } catch (error) {
             return response.status(500).json({
@@ -38,7 +43,7 @@ module.exports = {
     async cadastrarAgricultores(request, response) {
         try {
             
-            const { agri_localizacao_propriedade, agri_tipos_amendoim_cultivados, agri_certificacoes, agri_outras_informacoes } = request.body;
+            const { agri_localizacao_propriedade, agri_tipos_amendoim_cultivados, agri_certificacoes, agri_outras_informacoes, imagem } = request.body;
             let imagemFinal = null;
             let urlImagem = null;
 
@@ -59,12 +64,12 @@ module.exports = {
             const sql = `
                INSERT INTO AGRICULTORES (agri_localizacao_propriedade, 
                agri_tipos_amendoim_cultivados, 
-               agri_certificacoes, agri_outras_informacoes)
+               agri_certificacoes, agri_outras_informacoes, agri_img)
                 VALUES
                         (?, ?, ?, ?)
                     `;
 
-                    const values = [agri_localizacao_propriedade, agri_tipos_amendoim_cultivados, agri_certificacoes, agri_outras_informacoes];
+                    const values = [agri_localizacao_propriedade, agri_tipos_amendoim_cultivados, agri_certificacoes, agri_outras_informacoes, imagemFinal];
 
                     const [result] = await db.query(sql, values);
 
@@ -73,7 +78,8 @@ module.exports = {
                         agri_localizacao_propriedade, 
                         agri_tipos_amendoim_cultivados, 
                         agri_certificacoes, 
-                        agri_outras_informacoes
+                        agri_outras_informacoes,
+                        imagem: urlImagem
                     };
 
 

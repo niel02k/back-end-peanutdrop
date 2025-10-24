@@ -9,7 +9,7 @@ module.exports = {
             const sql = `
             SELECT
                 emp_id, emp_razao_social, emp_nome_fantasia, 
-                emp_tipo_atividade, emp_telefone, emp_email 
+                emp_tipo_atividade, emp_telefone, emp_email, emp_img
             FROM EMPRESAS;
                         `;
             
@@ -17,10 +17,16 @@ module.exports = {
 
             const nRegistros = rows.length;
 
+            const dados = rows.map (empresas => ({
+                ...empresas,
+                emp_img: gerarUrl(empresas.emp_img, 'empresas', 'padrao.jpg')
+            }));
+
             return response.status(200).json({
                 sucesso: true, 
                 mensagem: 'Lista de Empresas', 
-                dados: rows,
+                nRegistros,
+                dados
             });
         } catch (error) {
             return response.status(500).json({
@@ -35,17 +41,35 @@ module.exports = {
     async cadastrarEmpresas(request, response) {
         try {
 
-            const {razao_social, nome_fantasia, tipo_atividade, telefone, email} = request.body;
+            const {razao_social, nome_fantasia, tipo_atividade, telefone, email, imagem} = request.body;
+            
+             // VERIFICA SE TEM UPLOAD OU URL
+            let imagemFinal = null;
+            let urlImagem = null;
 
+            if (request.file) {
+            // Tem upload de arquivo
+            imagemFinal = request.file.filename;
+            urlImagem = gerarUrl(imagemFinal, 'empresas');
+            } else if (imagem) {
+            // Tem URL no body - usa diretamente
+            imagemFinal = imagem; // ← Isso deveria salvar a URL
+            urlImagem = imagem;   // ← Mas você está salvando 'padrao.jpg' abaixo!
+            } else {
+            // Não tem upload nem URL - usa imagem padrão
+            imagemFinal = 'padrao.jpg'; // ← AQUI ESTÁ O PROBLEMA!
+            urlImagem = gerarUrl('padrao.jpg', 'empresas', 'padrao.jpg');
+            }
+        // Se não tiver nenhum, ambos ficam null
             //instruções sql
             const sql = `
                 INSERT INTO EMPRESAS
-                    (emp_razao_social, emp_nome_fantasia, emp_tipo_atividade, emp_telefone, emp_email) 
+                    (emp_razao_social, emp_nome_fantasia, emp_tipo_atividade, emp_telefone, emp_email, emp_img) 
                 VALUES
-                    (?, ?, ? ,? ,?);
+                    (?, ?, ? ,? ,?, ?);
             `;
 
-            const values = [razao_social, nome_fantasia, tipo_atividade, telefone, email];
+            const values = [razao_social, nome_fantasia, tipo_atividade, telefone, email, imagemFinal];
             
             const [result] = await db.query(sql, values);
 
@@ -54,7 +78,8 @@ module.exports = {
                 nome_fantasia, 
                 tipo_atividade, 
                 telefone, 
-                email
+                email,
+                imagem: urlImagem
             };
 
             return response.status(200).json({

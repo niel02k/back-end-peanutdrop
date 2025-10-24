@@ -3,6 +3,8 @@ SET FOREIGN_KEY_CHECKS = 0;
 
 USE bd_tcc_etim_123_g3;
 
+select * from demandas
+
 -- 1️⃣ Tabelas com FK (devem ser removidas primeiro)
 DROP TABLE IF EXISTS NOTAS_FISCAIS;
 DROP TABLE IF EXISTS PAGAMENTOS;
