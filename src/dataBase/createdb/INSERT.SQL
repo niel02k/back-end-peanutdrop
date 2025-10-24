@@ -59,11 +59,10 @@ INSERT INTO AGR_CERTIFICACOES (agri_id, cert_id, agr_local, agr_data, agr_arquiv
 (3, 3, NULL, NULL, NULL, NULL); -- Sem certificação
 
 -- Inserindo demandas (3 demandas)
-INSERT INTO DEMANDAS (emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, demanda_data_entrega, demanda_outras_informacoes, demanda_data_publicacao,demanda_imagem, demanda_ativa) VALUES
-(1, 1, 1000, 5.50, '2025-04-10', 'Entrega no Porto de Santos', '2025-03-15', 1),
-(2, 2, 1500, 6.00, '2025-04-20', 'Necessário embalagem a vácuo', '2025-03-16', 1),
-(3, 3, 2000, 5.80, '2025-05-05', 'Frete incluso', '2025-03-17', 1);
-
+INSERT INTO DEMANDAS (emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, demanda_data_entrega, demanda_outras_informacoes, demanda_data_publicacao,demanda_imagem,  demanda_ativa) VALUES
+(1, 1, 50, 200.00, '2025-11-01', 'Sacas de amendoim cru — preço médio de R$200 por saca', '2025-10-17', 1, 'Demanda1.jpg'),
+(1, 2, 40, 210.00, '2025-11-05', 'Saca de amendoim selecionado em casca', '2025-10-17', 1, 'Demanda2.jpg'),
+(1, 3, 30, 220.00, '2025-11-10', 'Amendoim em casca seca — pronta entrega', '2025-10-17', 1, 'Demanda3.jpg');
 -- Inserindo ofertas (2 ofertas)
 INSERT INTO OFERTAS (agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa) VALUES
 (1, 1, 1200, 5.20, '2025-01-15', 'Produção sem pesticidas', '2025-03-10', 1),
