@@ -1,20 +1,28 @@
 const db = require("../dataBase/connection");
 const mensagem = require("./Mensagem");
 const crypto = require('../utils/crypto');
+const {gerarUrl} = require('../../src/utils/gerarUrl');
 
 module.exports = {
   async listarUsuarios(request, response) {
     try {
-      const sql = `SELECT usu_id,usu_tipo_usuario,usu_nome,usu_documento,usu_email, usu_senha,usu_endereco,usu_telefone ,usu_data_cadastro FROM USUARIOS;`;
+      const sql = `SELECT usu_id,usu_tipo_usuario,usu_nome,usu_documento,usu_email, 
+                   usu_senha,usu_endereco,usu_telefone ,usu_data_cadastro 
+                   FROM USUARIOS;`;
 
       const [rows] = await db.query(sql);
       const nRegistros = rows.length;
+
+      const dados = rows.map (usuarios => ({
+        ...usuarios,
+        usu_imagem: gerarUrl (usuarios.usu_imagem, 'usuarios', 'padrao.png')
+      }));
 
       return response.status(200).json({
         sucesso: true,
         mensagem: "Lista de usuários",
         nRegistros,
-        dados: rows,
+        dados
       });
     } catch (error) {
       return response.status(500).json({
@@ -35,8 +43,26 @@ module.exports = {
         usu_endereco,
         usu_telefone,
         usu_data_cadastro,
+        imagem
       } = request.body;
-      const usu_imagem = request.file ? request.file.filename : null;
+
+      let imagemFinal = null;
+      let urlImagem = null;
+
+      if (request.file) {
+        // Tem upload de arquivo
+        imagemFinal = request.file.filename;
+        urlImagem = gerarUrl(imagemFinal, 'demandas');
+      } else if (imagem) {
+        // Tem URL no body - usa diretamente
+        imagemFinal = imagem; // ← Isso deveria salvar a URL
+        urlImagem = imagem;   // ← Mas você está salvando 'padrao.jpg' abaixo!
+      } else {
+        // Não tem upload nem URL - usa imagem padrão
+        imagemFinal = 'padrao.jpg'; // ← AQUI ESTÁ O PROBLEMA!
+        urlImagem = gerarUrl('padrao.jpg', 'demandas', 'padrao.jpg');
+      }
+     
       const senhaCriptografada = await crypto.hashPassword(usu_senha);
       const sql = `
         INSERT INTO USUARIOS 
@@ -52,17 +78,16 @@ module.exports = {
         usu_endereco,
         usu_telefone,
         usu_data_cadastro,
-        usu_imagem
+        imagem
       ];
       const [result] = await db.query(sql, values);
-      const { gerarUrl } = require('../utils/gerarUrl');
-      const imagemUrl = usu_imagem ? gerarUrl(usu_imagem, 'usuarios', 'padrao.jpg') : null;
+
       const dados = {
         id: result.insertId,
         nome: usu_nome,
         email: usu_email,
         tipo: usu_tipo_usuario,
-        imagem: imagemUrl
+        imagem: urlImagem
       };
       return response.status(200).json({
         sucesso: true,
@@ -81,7 +106,6 @@ module.exports = {
     try {
       const { id } = request.params;
       const { nome, email, senha, endereco, telefone } = request.body;
-      const usu_imagem = request.file ? request.file.filename : null;
       let senhaCriptografada = senha;
       if (senha) {
         senhaCriptografada = await crypto.hashPassword(senha);
