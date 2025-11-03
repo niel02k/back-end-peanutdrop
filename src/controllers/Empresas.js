@@ -1,4 +1,5 @@
-const db = require('../dataBase/connection'); 
+const db = require('../dataBase/connection');
+const { gerarUrl } = require('../../src/utils/gerarUrl');
 
 module.exports = {
     // Listagem de empresas

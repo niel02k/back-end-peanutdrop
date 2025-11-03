@@ -12,17 +12,27 @@ module.exports = {
     async listarOfertas(request, response) {
         try {
             const sql = `
-           SELECT oferta_id, agri_id, amen_id, oferta_quantidade, 
-           oferta_preco, oferta_data_colheita, oferta_outras_informacoes, 
-           oferta_data_publicacao, oferta_ativa FROM OFERTAS;
-         `;
+                SELECT oferta_id, OFERTAS.agri_id, OFERTAS.amen_id, oferta_quantidade, 
+                oferta_preco, oferta_data_colheita, oferta_outras_informacoes, 
+                oferta_data_publicacao, oferta_ativa, oferta_img 
+                FROM OFERTAS
+                INNER JOIN AGRICULTORES ON AGRICULTORES.agri_id = OFERTAS.agri_id
+                INNER JOIN AMENDOINS ON AMENDOINS.amen_id = OFERTAS.amen_id;
+                `;
             const [rows] = await db.query(sql);
+
             const nRegistros = rows.length;
+
+            const dados = rows.map (ofertas => ({
+                ...ofertas,
+                oferta_img: gerarUrl(ofertas.oferta_img, 'ofertas', 'padrao.png')
+            }))
+
             return response.status(200).json({
                 sucesso: true, 
                 mensagem: 'Lista de Ofertas', 
                 nRegistros,
-                dados: rows
+                dados
             });
         } catch (error) {
             return response.status(500).json({
@@ -36,8 +46,27 @@ module.exports = {
     async cadastrarOfertas(request, response) {
         try {
             const { agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa } = request.body;
-            const imagem = request.file ? request.file.filename : null;
+           
             // Monta instrução SQL para inserir oferta
+            let imagemFinal = null;
+            let urlImagem = null;
+
+            if (request.file) {
+        // Tem upload de arquivo
+                imagemFinal = request.file.filename;
+                urlImagem = gerarUrl(imagemFinal, 'ofertas');
+            } else if (imagem) {
+        // Tem URL no body - usa diretamente
+                imagemFinal = imagem; // ← Isso deveria salvar a URL
+                urlImagem = imagem;   // ← Mas você está salvando 'padrao.jpg' abaixo!
+            } else {
+        // Não tem upload nem URL - usa imagem padrão
+                imagemFinal = 'padrao.jpg'; // ← AQUI ESTÁ O PROBLEMA!
+                urlImagem = gerarUrl('padrao.jpg', 'ofertas', 'padrao.jpg');
+            }
+
+
+
             const sql = `
              INSERT INTO OFERTAS (agri_id, amen_id, 
              oferta_quantidade, oferta_preco, oferta_data_colheita, 
@@ -46,8 +75,7 @@ module.exports = {
             `;
             const values = [agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa, imagem];
             const [result] = await db.query(sql, values);
-            // Gera a URL pública da imagem
-            const urlImagem = imagem ? gerarUrl(imagem, 'ofertas', 'padrao.jpg') : null;
+
             const dados = {
                 inf_id: result.insertId,
                 agri_id,
