@@ -23,7 +23,6 @@ router.get('/Ofertas', OfertasController.listarOfertas);
 router.post('/Ofertas', uploadOfertas.single('imagem'), OfertasController.cadastrarOfertas); 
 router.patch('/Ofertas/:id', uploadOfertas.single('imagem'), OfertasController.editarOfertas); 
 router.delete('/Ofertas/:id', OfertasController.apagarOfertas);
-router.get('/Ofertas/:id', OfertasController.listarOfertasPorId);
 router.get('/Ofertas/filtro', OfertasController.listarOfertasFiltro);
 router.get('/Ofertas/destaques', OfertasController.listarDestaques); 
 

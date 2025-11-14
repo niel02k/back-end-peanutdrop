@@ -1,6 +1,6 @@
 // Conexão com o banco de dados
 const db = require('../dataBase/connection'); 
-const { gerarUrl } = require('../utils/gerarUrl');
+const { gerarUrl } = require('../../src/utils/gerarUrl');
 
 // Funções auxiliares para validação de tipos
 const isNum = (v) => v !== null && v !== '' && !Number.isNaN(Number(v));
@@ -12,21 +12,21 @@ module.exports = {
     async listarOfertas(request, response) {
         try {
             const sql = `
-                SELECT o.oferta_id, o.agri_id, o.amen_id, o.oferta_quantidade, 
-                o.oferta_preco, o.oferta_data_colheita, o.oferta_outras_informacoes, 
-                o.oferta_data_publicacao, (o.oferta_ativa + 0) AS oferta_ativa, o.oferta_imagem 
-                FROM OFERTAS o
-                INNER JOIN AGRICULTORES a ON a.agri_id = o.agri_id
-                INNER JOIN AMENDOINS am ON am.amen_id = o.amen_id
+                SELECT oferta_id, OFERTAS.agri_id, OFERTAS.amen_id, oferta_quantidade, 
+                oferta_preco, oferta_data_colheita, oferta_outras_informacoes, 
+                oferta_data_publicacao, oferta_ativa, oferta_img 
+                FROM OFERTAS
+                INNER JOIN AGRICULTORES ON AGRICULTORES.agri_id = OFERTAS.agri_id
+                INNER JOIN AMENDOINS ON AMENDOINS.amen_id = OFERTAS.amen_id;
                 `;
             const [rows] = await db.query(sql);
 
             const nRegistros = rows.length;
 
-            const dados = rows.map(ofertas => ({
+            const dados = rows.map (ofertas => ({
                 ...ofertas,
-                oferta_imagem: gerarUrl(ofertas.oferta_imagem, 'ofertas', 'padrao.png')
-            }));
+                oferta_img: gerarUrl(ofertas.oferta_img, 'ofertas', 'padrao.png')
+            }))
 
             return response.status(200).json({
                 sucesso: true, 
@@ -52,17 +52,17 @@ module.exports = {
             let urlImagem = null;
 
             if (request.file) {
-                // Tem upload de arquivo
+        // Tem upload de arquivo
                 imagemFinal = request.file.filename;
                 urlImagem = gerarUrl(imagemFinal, 'ofertas');
-            } else if (request.body.imagem) {
-                // Tem URL no body - usa diretamente
-                imagemFinal = request.body.imagem;
-                urlImagem = request.body.imagem;
+            } else if (imagem) {
+        // Tem URL no body - usa diretamente
+                imagemFinal = imagem; // ← Isso deveria salvar a URL
+                urlImagem = imagem;   // ← Mas você está salvando 'padrao.jpg' abaixo!
             } else {
-                // Não tem upload nem URL - não salvar nome padrão no banco (usar NULL)
-                imagemFinal = null;
-                urlImagem = gerarUrl('padrao.png', 'ofertas', 'padrao.png');
+        // Não tem upload nem URL - usa imagem padrão
+                imagemFinal = 'padrao.jpg'; // ← AQUI ESTÁ O PROBLEMA!
+                urlImagem = gerarUrl('padrao.jpg', 'ofertas', 'padrao.jpg');
             }
 
 
@@ -73,7 +73,7 @@ module.exports = {
              oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa, oferta_imagem) 
              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
-            const values = [agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa, imagemFinal];
+            const values = [agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa, imagem];
             const [result] = await db.query(sql, values);
 
             const dados = {
@@ -369,56 +369,5 @@ module.exports = {
                 dados: error.message
             });
         }
-    },
-
-    // Lista uma oferta específica por ID
-    async listarOfertasPorId(req, res) {
-    try {
-        const { id } = req.params; // ID vem da rota /Ofertas/:id
-
-        // Consulta o banco
-        const sql = `
-            SELECT 
-                o.oferta_id, 
-                o.agri_id, 
-                o.amen_id, 
-                o.oferta_quantidade, 
-                o.oferta_preco, 
-                o.oferta_data_colheita, 
-                o.oferta_outras_informacoes, 
-                o.oferta_data_publicacao, 
-                CAST(o.oferta_ativa AS UNSIGNED) AS oferta_ativa,
-                o.oferta_imagem
-            FROM OFERTAS o
-            WHERE o.oferta_id = ?
-        `;
-
-        const [rows] = await db.query(sql, [id]);
-
-        if (!rows.length) {
-            return res.status(404).json({
-                sucesso: false,
-                mensagem: `Oferta ${id} não encontrada.`,
-                dados: null
-            });
-        }
-
-        const oferta = rows[0];
-        oferta.oferta_imagem = gerarUrl(oferta.oferta_imagem, 'ofertas', 'padrao.png');
-
-        return res.status(200).json({
-            sucesso: true,
-            mensagem: `Detalhes da oferta ${id}`,
-            dados: oferta
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            sucesso: false,
-            mensagem: 'Erro ao buscar oferta por ID',
-            dados: error.message
-        });
     }
-},
-
 };
