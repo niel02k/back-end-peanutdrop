@@ -10,6 +10,8 @@ INSERT INTO EMPRESAS (emp_razao_social, emp_nome_fantasia, emp_tipo_atividade, e
 ('AgroNutri SA', 'AgroNutri', 'Indústria alimentícia', '1144335566', 'contato@agronutri.com','empresas2.jpg'),
 ('NutriFoods Ltda', 'NutriFoods', 'Distribuição', '1155446677', 'contato@nutrifoods.com','empresas3.jpg');
 
+
+
 -- Inserindo certificações (5 certificações)
 INSERT INTO CERTIFICACOES (cert_orgao_regulador, cert_nome) VALUES
 ('MAPA', 'Certificação de Qualidade'),
@@ -57,19 +59,21 @@ INSERT INTO AGR_CERTIFICACOES (agri_id, cert_id, agr_local, agr_data, agr_arquiv
 -- Inserindo demandas (3 demandas)
 INSERT INTO DEMANDAS (emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, demanda_data_entrega, demanda_outras_informacoes, demanda_data_publicacao, demanda_imagem, demanda_ativa) VALUES
 (1, 1, 50, 200.00, '2025-11-01', 'Sacas de amendoim cru — preço médio de R$200 por saca', '2025-10-17', 'Demanda1.jpg', 1),
-(1, 2, 40, 210.00, '2025-11-05', 'Saca de amendoim selecionado em casca', '2025-10-17', 'Demanda2.jpg', 1),
-(1, 3, 30, 220.00, '2025-11-10', 'Amendoim em casca seca — pronta entrega', '2025-10-17', 'Demanda3.jpg', 1);
+(2, 2, 40, 210.00, '2025-11-05', 'Saca de amendoim selecionado em casca', '2025-10-17', 'Demanda2.jpg', 1),
+(3, 3, 30, 220.00, '2025-11-10', 'Amendoim em casca seca — pronta entrega', '2025-10-17', 'Demanda3.jpg', 1);
 
 -- Inserindo ofertas (2 ofertas) - CORRIGIDO
 INSERT INTO OFERTAS (agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa, oferta_img) VALUES
 (1, 1, 1200, 5.20, '2025-01-15', 'Produção sem pesticidas', '2025-03-10', 1, 'Ofertas.jpg'),
 (2, 2, 600, 5.80, '2024-12-20', 'Amendoim de alta qualidade', '2025-03-12', 1, 'Ofertas2.jpg');
 
+
 -- Inserindo negociações (2 negociações)
 INSERT INTO NEGOCIACOES (oferta_id, demanda_id, negoc_status) VALUES
-(1, 4, 1),
-(2, 5, 1);
+(1, 1 ,1),
+(2, 2, 1);
 
+Select* From negociacoes;
 -- Inserindo propostas (2 propostas)
 INSERT INTO PROPOSTA (negoc_id, emp_id, prop_preco, prop_quantidade, prop_data_envio, prop_status) VALUES
 (1, 1, 5.30, 1000, '2025-03-18', 1),
@@ -77,9 +81,9 @@ INSERT INTO PROPOSTA (negoc_id, emp_id, prop_preco, prop_quantidade, prop_data_e
 
 -- Inserindo mensagens (4 mensagens)
 INSERT INTO MENSAGENS (negoc_id, id_usuario_remetente, mens_conteudo, mens_data_envio, mens_visualizada) VALUES
-(1, 5, 'Estamos interessados na oferta, podemos negociar o preço?', '2025-03-17', 0),
+(1, 2, 'Estamos interessados na oferta, podemos negociar o preço?', '2025-03-17', 0),
 (1, 2, 'Sim, qual seria sua contraproposta?', '2025-03-17', 1),
-(2, 6, 'A empresa precisa de uma entrega rápida, é possível antecipar?', '2025-03-17', 0),
+(2, 3, 'A empresa precisa de uma entrega rápida, é possível antecipar?', '2025-03-17', 0),
 (2, 3, 'Podemos antecipar em 5 dias, isso ajudaria?', '2025-03-18', 1);
 
 -- Inserindo contratos (2 contratos)
@@ -95,4 +99,4 @@ INSERT INTO PAGAMENTOS (contrato_id, pag_valor, pag_data_pagamento, pag_status) 
 -- Inserindo notas fiscais (2 notas fiscais)
 INSERT INTO NOTAS_FISCAIS (contrato_id, nota_fiscal_numero, nota_fiscal_data_emissao, nota_fiscal_detalhes) VALUES
 (1, 'NF123456', '2025-04-02', 'Venda de amendoim para empresa Exemplo'),
-(2, 'NF654321', '2025-04-11', 'Venda parcelada de amendoim para AgroNutri SA');
+(2, 'NF654321', '2025-04-11', 'Venda parcelada de amendoim para AgroNutri SA'); 
