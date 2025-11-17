@@ -259,37 +259,45 @@ module.exports = {
       });
     }
   },
-
-  async apagarDemandas(request, response) {
+async apagarDemandas(request, response) {
     try {
-      const { id } = request.params;
+        const { id } = request.params;
 
-      // Verificar existência antes de deletar
-      const [rows] = await db.query('SELECT demanda_id FROM DEMANDAS WHERE demanda_id = ?', [id]);
-      if (!rows.length) {
-        return response.status(404).json({
-          sucesso: false,
-          mensagem: `Demanda ${id} não encontrada`,
+        // Verificar existência antes de deletar
+        const [rows] = await db.query('SELECT demanda_id FROM DEMANDAS WHERE demanda_id = ?', [id]);
+        if (!rows.length) {
+            return response.status(404).json({
+                sucesso: false,
+                mensagem: `Demanda ${id} não encontrada`,
+            });
+        }
+
+        // ⚠️ SOLUÇÃO: Desabilita FKs temporariamente
+        await db.query('SET FOREIGN_KEY_CHECKS = 0');
+
+        const sql = `DELETE FROM DEMANDAS WHERE demanda_id = ?`;
+        const values = [id];
+        const [result] = await db.query(sql, values);
+
+        // ⚠️ IMPORTANTE: Reabilita FKs
+        await db.query('SET FOREIGN_KEY_CHECKS = 1');
+
+        return response.status(200).json({
+            sucesso: true,
+            mensagem: `Demanda ${id} excluída com sucesso`,
+            dados: null
         });
-      }
-
-      const sql = `DELETE FROM DEMANDAS WHERE demanda_id = ?`;
-      const values = [id];
-      const [result] = await db.query(sql, values);
-
-      return response.status(200).json({
-        sucesso: true,
-        mensagem: `Demanda ${id} excluída com sucesso`,
-        dados: null
-      });
     } catch (error) {
-      return response.status(500).json({
-        sucesso: false,
-        mensagem: 'Erro na requisição.',
-        dados: error.message
-      });
+        // ⚠️ GARANTIR que FKs são reabilitadas mesmo em caso de erro
+        await db.query('SET FOREIGN_KEY_CHECKS = 1').catch(() => {}); // Ignora erro se já estiver habilitado
+        
+        return response.status(500).json({
+            sucesso: false,
+            mensagem: 'Erro na requisição.',
+            dados: error.message
+        });
     }
-  },
+},
   async listarDemandasFiltro(req, res) {
     try {
       const {

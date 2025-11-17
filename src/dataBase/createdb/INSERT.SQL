@@ -6,7 +6,7 @@ INSERT INTO USUARIOS (usu_tipo_usuario, usu_nome, usu_documento, usu_email, usu_
 
 -- Inserindo empresas (3 empresas)
 INSERT INTO EMPRESAS (emp_razao_social, emp_nome_fantasia, emp_tipo_atividade, emp_telefone, emp_email,emp_img) VALUES
-('Empresa Exemplo Ltda', 'Exemplo', 'Comércio', '1133224455', 'contato@exemplo.com', 'empresas1.jpg'),
+('Peanut Grenn Ltda', 'PeanutGrenn', 'Comércio', '1133224455', 'contato@exemplo.com', 'empresas1.jpg'),
 ('AgroNutri SA', 'AgroNutri', 'Indústria alimentícia', '1144335566', 'contato@agronutri.com','empresas2.jpg'),
 ('NutriFoods Ltda', 'NutriFoods', 'Distribuição', '1155446677', 'contato@nutrifoods.com','empresas3.jpg');
 
