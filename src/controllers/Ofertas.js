@@ -1,5 +1,5 @@
 // Conexão com o banco de dados
-const db = require('../dataBase/connection');
+const db = require('../dataBase/connection'); 
 const { gerarUrl } = require('../../src/utils/gerarUrl');
 
 // Funções auxiliares para validação de tipos
@@ -12,57 +12,55 @@ module.exports = {
     async listarOfertas(request, response) {
         try {
             const sql = `
-               SELECT
-            of.oferta_id, of.agri_id, ag.agri_nome, of.amen_id, am.amen_variedade,
-            of.oferta_quantidade, of.oferta_preco, of.oferta_data_colheita,
-            of.oferta_outras_informacoes, of.oferta_data_publicacao, of.oferta_img, 
-            of.oferta_ativa = 1 AS oferta_ativa
-            FROM OFERTAS of
-            INNER JOIN AGRICULTORES ag ON of.agri_id = ag.agri_id
-            INNER JOIN AMENDOINS am ON of.amen_id = am.amen_id;
+                SELECT oferta_id, OFERTAS.agri_id, OFERTAS.amen_id, oferta_quantidade, 
+                oferta_preco, oferta_data_colheita, oferta_outras_informacoes, 
+                oferta_data_publicacao, oferta_ativa, oferta_img 
+                FROM OFERTAS
+                INNER JOIN AGRICULTORES ON AGRICULTORES.agri_id = OFERTAS.agri_id
+                INNER JOIN AMENDOINS ON AMENDOINS.amen_id = OFERTAS.amen_id;
                 `;
             const [rows] = await db.query(sql);
 
             const nRegistros = rows.length;
 
-            const dados = rows.map(ofertas => ({
+            const dados = rows.map (ofertas => ({
                 ...ofertas,
                 oferta_img: gerarUrl(ofertas.oferta_img, 'ofertas', 'padrao.png')
             }))
 
             return response.status(200).json({
-                sucesso: true,
-                mensagem: 'Lista de Ofertas',
+                sucesso: true, 
+                mensagem: 'Lista de Ofertas', 
                 nRegistros,
                 dados
             });
         } catch (error) {
             return response.status(500).json({
-                sucesso: false,
-                mensagem: 'Erro na requisição.',
+                sucesso: false, 
+                mensagem: 'Erro na requisição.', 
                 dados: error.message
             });
         }
-    },
+    }, 
     // Cadastra uma nova oferta
     async cadastrarOfertas(request, response) {
         try {
             const { agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa } = request.body;
-
+           
             // Monta instrução SQL para inserir oferta
             let imagemFinal = null;
             let urlImagem = null;
 
             if (request.file) {
-                // Tem upload de arquivo
+        // Tem upload de arquivo
                 imagemFinal = request.file.filename;
                 urlImagem = gerarUrl(imagemFinal, 'ofertas');
             } else if (imagem) {
-                // Tem URL no body - usa diretamente
+        // Tem URL no body - usa diretamente
                 imagemFinal = imagem; // ← Isso deveria salvar a URL
                 urlImagem = imagem;   // ← Mas você está salvando 'padrao.jpg' abaixo!
             } else {
-                // Não tem upload nem URL - usa imagem padrão
+        // Não tem upload nem URL - usa imagem padrão
                 imagemFinal = 'padrao.jpg'; // ← AQUI ESTÁ O PROBLEMA!
                 urlImagem = gerarUrl('padrao.jpg', 'ofertas', 'padrao.jpg');
             }
@@ -82,27 +80,27 @@ module.exports = {
                 inf_id: result.insertId,
                 agri_id,
                 amen_id,
-                oferta_quantidade,
-                oferta_preco,
+                oferta_quantidade, 
+                oferta_preco, 
                 oferta_data_colheita,
-                oferta_outras_informacoes,
-                oferta_data_publicacao,
+                oferta_outras_informacoes, 
+                oferta_data_publicacao, 
                 oferta_ativa,
                 imagem: urlImagem
             };
             return response.status(200).json({
-                sucesso: true,
-                mensagem: 'Cadastro de Ofertas',
+                sucesso: true, 
+                mensagem: 'Cadastro de Ofertas', 
                 dados: dados
             });
         } catch (error) {
             return response.status(500).json({
-                sucesso: false,
-                mensagem: 'Erro na requisição.',
+                sucesso: false, 
+                mensagem: 'Erro na requisição.', 
                 dados: error.message
             });
         }
-    },
+    }, 
     // Atualiza dinamicamente uma oferta (PATCH)
     async editarOfertas(request, response) {
         try {
@@ -205,7 +203,6 @@ module.exports = {
     async listarOfertasFiltro(req, res) {
         try {
             const {
-                oferta_id,
                 agri_id,
                 amen_id,
                 min_quantidade,
@@ -218,17 +215,13 @@ module.exports = {
                 ativa    // 0/1
             } = req.query;
 
-            const page = Math.max(parseInt(req.query.page || '1', 10), 1);
+            const page  = Math.max(parseInt(req.query.page  || '1', 10), 1);
             const limit = Math.max(parseInt(req.query.limit || '20', 10), 1);
             const offset = (page - 1) * limit;
 
             const where = [];
             const values = [];
 
-            if (oferta_id && !isNaN(oferta_id)) {
-                where.push('oferta_id = ?');
-                values.push(Number(oferta_id));
-            }
             if (agri_id && !isNaN(agri_id)) {
                 where.push('o.agri_id = ?');
                 values.push(Number(agri_id));
@@ -293,7 +286,7 @@ module.exports = {
                 'FROM OFERTAS o ' +
                 whereSql;
 
-            const [rows] = await db.query(selectSql, [...values, limit, offset]);
+            const [rows]   = await db.query(selectSql, [...values, limit, offset]);
             const [countR] = await db.query(countSql, values);
             const total = countR[0]?.total || 0;
 
@@ -310,6 +303,41 @@ module.exports = {
             return res.status(500).json({
                 sucesso: false,
                 mensagem: 'Erro ao listar ofertas',
+                dados: error.message
+            });
+        }
+    },
+
+    // Lista ofertas em destaque
+    async listarDestaques(req, res) {
+        try {
+            const sql =
+                'SELECT ' +
+                '  o.oferta_id, ' +
+                '  o.agri_id, ' +
+                '  o.amen_id, ' +
+                '  o.oferta_quantidade, ' +
+                '  o.oferta_preco, ' +
+                '  o.oferta_data_colheita, ' +
+                '  o.oferta_outras_informacoes, ' +
+                '  o.oferta_data_publicacao ' +
+                'FROM OFERTAS o ' +
+                'WHERE (o.oferta_ativa + 0) = 1 ' +
+                'ORDER BY RAND() ' +
+                'LIMIT 3';
+
+            const [rows] = await db.query(sql);
+
+            return res.status(200).json({
+                sucesso: true,
+                mensagem: 'Destaques de ofertas (ativas)',
+                itens: rows.length,
+                dados: rows
+            });
+        } catch (error) {
+            return res.status(500).json({
+                sucesso: false,
+                mensagem: 'Erro ao listar destaques',
                 dados: error.message
             });
         }
@@ -342,4 +370,55 @@ module.exports = {
             });
         }
     }
+
+    // Lista uma oferta específica por ID
+    async listarOfertasPorId(req, res) {
+    try {
+        const { id } = req.params; // ID vem da rota /Ofertas/:id
+
+        // Consulta o banco
+        const sql = `
+            SELECT 
+                o.oferta_id, 
+                o.agri_id, 
+                o.amen_id, 
+                o.oferta_quantidade, 
+                o.oferta_preco, 
+                o.oferta_data_colheita, 
+                o.oferta_outras_informacoes, 
+                o.oferta_data_publicacao, 
+                CAST(o.oferta_ativa AS UNSIGNED) AS oferta_ativa,
+                o.oferta_imagem
+            FROM OFERTAS o
+            WHERE o.oferta_id = ?
+        `;
+
+        const [rows] = await db.query(sql, [id]);
+
+        if (!rows.length) {
+            return res.status(404).json({
+                sucesso: false,
+                mensagem: `Oferta ${id} não encontrada.`,
+                dados: null
+            });
+        }
+
+        const oferta = rows[0];
+        oferta.oferta_imagem = gerarUrl(oferta.oferta_imagem, 'ofertas', 'padrao.png');
+
+        return res.status(200).json({
+            sucesso: true,
+            mensagem: `Detalhes da oferta ${id}`,
+            dados: oferta
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            sucesso: false,
+            mensagem: 'Erro ao buscar oferta por ID',
+            dados: error.message
+        });
+    }
+},
+
 };
