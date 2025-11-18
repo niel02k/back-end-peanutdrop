@@ -20,7 +20,7 @@ module.exports = {
 
             const dados = rows.map (empresas => ({
                 ...empresas,
-                emp_img: gerarUrl(empresas.emp_img, 'empresas', 'padrao.jpg')
+                emp_img: gerarUrl(empresas.emp_img, 'empresas', 'padrao.png')
             }));
 
             return response.status(200).json({

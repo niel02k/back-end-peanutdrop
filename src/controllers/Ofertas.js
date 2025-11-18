@@ -308,42 +308,7 @@ module.exports = {
         }
     },
 
-    // Lista ofertas em destaque
-    async listarDestaques(req, res) {
-        try {
-            const sql =
-                'SELECT ' +
-                '  o.oferta_id, ' +
-                '  o.agri_id, ' +
-                '  o.amen_id, ' +
-                '  o.oferta_quantidade, ' +
-                '  o.oferta_preco, ' +
-                '  o.oferta_data_colheita, ' +
-                '  o.oferta_outras_informacoes, ' +
-                '  o.oferta_data_publicacao ' +
-                'FROM OFERTAS o ' +
-                'WHERE (o.oferta_ativa + 0) = 1 ' +
-                'ORDER BY RAND() ' +
-                'LIMIT 3';
-
-            const [rows] = await db.query(sql);
-
-            return res.status(200).json({
-                sucesso: true,
-                mensagem: 'Destaques de ofertas (ativas)',
-                itens: rows.length,
-                dados: rows
-            });
-        } catch (error) {
-            return res.status(500).json({
-                sucesso: false,
-                mensagem: 'Erro ao listar destaques',
-                dados: error.message
-            });
-        }
-    },
-
-    // Remove uma oferta
+    
     async apagarOfertas(request, response) {
         try {
             const { id } = request.params;
@@ -369,56 +334,6 @@ module.exports = {
                 dados: error.message
             });
         }
-    }
-
-    // Lista uma oferta específica por ID
-    async listarOfertasPorId(req, res) {
-    try {
-        const { id } = req.params; // ID vem da rota /Ofertas/:id
-
-        // Consulta o banco
-        const sql = `
-            SELECT 
-                o.oferta_id, 
-                o.agri_id, 
-                o.amen_id, 
-                o.oferta_quantidade, 
-                o.oferta_preco, 
-                o.oferta_data_colheita, 
-                o.oferta_outras_informacoes, 
-                o.oferta_data_publicacao, 
-                CAST(o.oferta_ativa AS UNSIGNED) AS oferta_ativa,
-                o.oferta_imagem
-            FROM OFERTAS o
-            WHERE o.oferta_id = ?
-        `;
-
-        const [rows] = await db.query(sql, [id]);
-
-        if (!rows.length) {
-            return res.status(404).json({
-                sucesso: false,
-                mensagem: `Oferta ${id} não encontrada.`,
-                dados: null
-            });
-        }
-
-        const oferta = rows[0];
-        oferta.oferta_imagem = gerarUrl(oferta.oferta_imagem, 'ofertas', 'padrao.png');
-
-        return res.status(200).json({
-            sucesso: true,
-            mensagem: `Detalhes da oferta ${id}`,
-            dados: oferta
-        });
-
-    } catch (error) {
-        return res.status(500).json({
-            sucesso: false,
-            mensagem: 'Erro ao buscar oferta por ID',
-            dados: error.message
-        });
-    }
-},
+    },
 
 };
