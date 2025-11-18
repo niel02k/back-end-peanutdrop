@@ -52,15 +52,15 @@ module.exports = {
       if (request.file) {
         // Tem upload de arquivo
         imagemFinal = request.file.filename;
-        urlImagem = gerarUrl(imagemFinal, 'demandas');
+        urlImagem = gerarUrl(imagemFinal, 'usuarios');
       } else if (imagem) {
         // Tem URL no body - usa diretamente
         imagemFinal = imagem; // ← Isso deveria salvar a URL
         urlImagem = imagem;   // ← Mas você está salvando 'padrao.jpg' abaixo!
       } else {
         // Não tem upload nem URL - usa imagem padrão
-        imagemFinal = 'padrao.jpg'; // ← AQUI ESTÁ O PROBLEMA!
-        urlImagem = gerarUrl('padrao.jpg', 'demandas', 'padrao.jpg');
+        imagemFinal = 'padrao.png'; // ← AQUI ESTÁ O PROBLEMA!
+        urlImagem = gerarUrl('padrao.png', 'usuarios', 'padrao.png');
       }
      
       const senhaCriptografada = await crypto.hashPassword(usu_senha);
