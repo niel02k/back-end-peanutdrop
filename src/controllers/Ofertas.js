@@ -199,7 +199,7 @@ module.exports = {
         }
     },
 
-   async listarOfertasPorId(req, res) {
+  async listarOfertasPorId(req, res) {
     try {
         const { id } = req.params;
 
@@ -214,8 +214,10 @@ module.exports = {
                 o.oferta_outras_informacoes,
                 o.oferta_data_publicacao,
                 o.oferta_img,
+                a.agri_nome,
                 (o.oferta_ativa + 0) AS oferta_ativa
             FROM OFERTAS o
+            JOIN AGRICULTORES a ON a.agri_id = o.agri_id
             WHERE o.oferta_id = ?
             LIMIT 1;
         `;
@@ -230,10 +232,19 @@ module.exports = {
             });
         }
 
+        const oferta = rows[0];
+
+        // 🔥 TRATA A URL DA IMAGEM IGUAL AO LISTAR GERAL
+        oferta.oferta_img = gerarUrl(
+            oferta.oferta_img,
+            'ofertas',
+            'padrao.jpg'
+        );
+
         return res.status(200).json({
             sucesso: true,
             mensagem: `Detalhes da oferta ${id}`,
-            dados: rows[0]
+            dados: oferta
         });
 
     } catch (error) {
@@ -244,6 +255,8 @@ module.exports = {
         });
     }
 },
+
+
 
     
     async apagarOfertas(request, response) {
