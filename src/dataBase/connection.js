@@ -1,6 +1,7 @@
 require('dotenv').config();
 const mysql = require('mysql2/promise');
 
+
 // Obtém as configurações do banco de dados a partir do arquivo .env
 const config = {
     host: process.env.BD_SERVIDOR, // endereço do servidor
@@ -13,12 +14,7 @@ const config = {
     queueLimit: 0,
 };
 
-/* 
-    -queueLimit-
-    O número máximo de solicitações de conexão que o pool enfileirará 
-    antes de retornar um erro do getConnection. Se definido como 0, não 
-    há limite para o número de solicitações de conexão enfileiradas. (Padrão: 0)
-*/
+
 
 let pool;
 
