@@ -14,7 +14,7 @@ module.exports = {
             const sql = `
                 SELECT oferta_id, OFERTAS.agri_id, OFERTAS.amen_id, oferta_quantidade, 
                 oferta_preco, oferta_data_colheita, oferta_outras_informacoes, 
-                oferta_data_publicacao, oferta_ativa, oferta_img , AGRICULTORES.agri_nome
+                oferta_data_publicacao, oferta_ativa, oferta_img , AGRICULTORES.agri_nome, AMENDOINS.amen_variedade
                 FROM OFERTAS
                 INNER JOIN AGRICULTORES ON AGRICULTORES.agri_id = OFERTAS.agri_id
                 INNER JOIN AMENDOINS ON AMENDOINS.amen_id = OFERTAS.amen_id;
@@ -199,7 +199,7 @@ module.exports = {
         }
     },
 
-  async listarOfertasPorId(req, res) {
+async listarOfertasPorId(req, res) {
     try {
         const { id } = req.params;
 
@@ -214,10 +214,12 @@ module.exports = {
                 o.oferta_outras_informacoes,
                 o.oferta_data_publicacao,
                 o.oferta_img,
-                a.agri_nome,
+                ag.agri_nome,
+                am.amen_variedade,
                 (o.oferta_ativa + 0) AS oferta_ativa
             FROM OFERTAS o
-            JOIN AGRICULTORES a ON a.agri_id = o.agri_id
+            JOIN AGRICULTORES ag ON ag.agri_id = o.agri_id
+            JOIN AMENDOINS am ON am.amen_id = o.amen_id
             WHERE o.oferta_id = ?
             LIMIT 1;
         `;
@@ -234,7 +236,7 @@ module.exports = {
 
         const oferta = rows[0];
 
-        // 🔥 TRATA A URL DA IMAGEM IGUAL AO LISTAR GERAL
+        // 🔥 Trata URL da imagem corretamente
         oferta.oferta_img = gerarUrl(
             oferta.oferta_img,
             'ofertas',
@@ -255,9 +257,6 @@ module.exports = {
         });
     }
 },
-
-
-
     
     async apagarOfertas(request, response) {
         try {
