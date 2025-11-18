@@ -11,16 +11,16 @@ module.exports = {
     // Lista todas as ofertas
     async listarOfertas(request, response) {
         try {
-             const sql = `
-            SELECT
-                ofe.oferta_id, ofe.agri_id, ag.agri_nome, ofe.amen_id, am.amen_variedade,
-                ofe.oferta_quantidade, ofe.oferta_preco, ofe.oferta_data_colheita,
-                ofe.oferta_outras_informacoes, ofe.oferta_data_publicacao, ofe.oferta_img, 
-                ofe.oferta_ativa = 1 AS oferta_ativa
-            FROM OFERTAS ofe
-            INNER JOIN AGRICULTORES ag ON ofe.agri_id = ag.agri_id
-            INNER JOIN AMENDOINS am ON ofe.amen_id = am.amen_id;
-        `;
+            const sql = `
+               SELECT
+            of.oferta_id, of.agri_id, ag.agri_nome, of.amen_id, am.amen_variedade,
+            of.oferta_quantidade, of.oferta_preco, of.oferta_data_colheita,
+            of.oferta_outras_informacoes, of.oferta_data_publicacao, of.oferta_img, 
+            of.oferta_ativa = 1 AS oferta_ativa
+            FROM OFERTAS of
+            INNER JOIN AGRICULTORES ag ON of.agri_id = ag.agri_id
+            INNER JOIN AMENDOINS am ON of.amen_id = am.amen_id;
+                `;
             const [rows] = await db.query(sql);
 
             const nRegistros = rows.length;
@@ -205,6 +205,7 @@ module.exports = {
     async listarOfertasFiltro(req, res) {
         try {
             const {
+                oferta_id,
                 agri_id,
                 amen_id,
                 min_quantidade,
@@ -224,6 +225,10 @@ module.exports = {
             const where = [];
             const values = [];
 
+            if (oferta_id && !isNaN(oferta_id)) {
+                where.push('oferta_id = ?');
+                values.push(Number(oferta_id));
+            }
             if (agri_id && !isNaN(agri_id)) {
                 where.push('o.agri_id = ?');
                 values.push(Number(agri_id));
@@ -305,41 +310,6 @@ module.exports = {
             return res.status(500).json({
                 sucesso: false,
                 mensagem: 'Erro ao listar ofertas',
-                dados: error.message
-            });
-        }
-    },
-
-    // Lista ofertas em destaque
-    async listarDestaques(req, res) {
-        try {
-            const sql =
-                'SELECT ' +
-                '  o.oferta_id, ' +
-                '  o.agri_id, ' +
-                '  o.amen_id, ' +
-                '  o.oferta_quantidade, ' +
-                '  o.oferta_preco, ' +
-                '  o.oferta_data_colheita, ' +
-                '  o.oferta_outras_informacoes, ' +
-                '  o.oferta_data_publicacao ' +
-                'FROM OFERTAS o ' +
-                'WHERE (o.oferta_ativa + 0) = 1 ' +
-                'ORDER BY RAND() ' +
-                'LIMIT 3';
-
-            const [rows] = await db.query(sql);
-
-            return res.status(200).json({
-                sucesso: true,
-                mensagem: 'Destaques de ofertas (ativas)',
-                itens: rows.length,
-                dados: rows
-            });
-        } catch (error) {
-            return res.status(500).json({
-                sucesso: false,
-                mensagem: 'Erro ao listar destaques',
                 dados: error.message
             });
         }
