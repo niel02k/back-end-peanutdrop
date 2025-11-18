@@ -11,16 +11,16 @@ module.exports = {
     // Lista todas as ofertas
     async listarOfertas(request, response) {
         try {
-            const sql = `
-               SELECT
-            of.oferta_id, of.agri_id, ag.agri_nome, of.amen_id, am.amen_variedade,
-            of.oferta_quantidade, of.oferta_preco, of.oferta_data_colheita,
-            of.oferta_outras_informacoes, of.oferta_data_publicacao, of.oferta_img, 
-            of.oferta_ativa = 1 AS oferta_ativa
-            FROM OFERTAS of
-            INNER JOIN AGRICULTORES ag ON of.agri_id = ag.agri_id
-            INNER JOIN AMENDOINS am ON of.amen_id = am.amen_id;
-                `;
+             const sql = `
+            SELECT
+                ofe.oferta_id, ofe.agri_id, ag.agri_nome, ofe.amen_id, am.amen_variedade,
+                ofe.oferta_quantidade, ofe.oferta_preco, ofe.oferta_data_colheita,
+                ofe.oferta_outras_informacoes, ofe.oferta_data_publicacao, ofe.oferta_img, 
+                ofe.oferta_ativa = 1 AS oferta_ativa
+            FROM OFERTAS ofe
+            INNER JOIN AGRICULTORES ag ON ofe.agri_id = ag.agri_id
+            INNER JOIN AMENDOINS am ON ofe.amen_id = am.amen_id;
+        `;
             const [rows] = await db.query(sql);
 
             const nRegistros = rows.length;

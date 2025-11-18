@@ -39,6 +39,7 @@ CREATE TABLE AMENDOINS (
 
 CREATE TABLE AGRICULTORES (
     agri_id INT PRIMARY KEY AUTO_INCREMENT,
+    agri_nome VARCHAR (255),
     agri_localizacao_propriedade VARCHAR (255),
     agri_tipos_amendoim_cultivados VARCHAR (255),
     agri_certificacoes VARCHAR (255),
