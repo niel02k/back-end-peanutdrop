@@ -14,7 +14,7 @@ module.exports = {
             const sql = `
                 SELECT oferta_id, OFERTAS.agri_id, OFERTAS.amen_id, oferta_quantidade, 
                 oferta_preco, oferta_data_colheita, oferta_outras_informacoes, 
-                oferta_data_publicacao, oferta_ativa, oferta_img 
+                oferta_data_publicacao, oferta_ativa, oferta_img , AGRICULTORES.agri_nome
                 FROM OFERTAS
                 INNER JOIN AGRICULTORES ON AGRICULTORES.agri_id = OFERTAS.agri_id
                 INNER JOIN AMENDOINS ON AMENDOINS.amen_id = OFERTAS.amen_id;
