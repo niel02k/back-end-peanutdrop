@@ -28,9 +28,9 @@ router.get('/usuarios', UsuariosController.listarUsuarios);
 router.get('/usuarios/filtros', UsuariosController.listarUsuariosFiltro);
 router.get('/usuarios/:id', UsuariosController.buscarUsuarioPorId);
 router.post('/usuarios', uploadUsuarios.single('imagem'), UsuariosController.cadastrarUsuarios);
-router.patch('/usuarios/:id', uploadUsuarios.single('imagem'), UsuariosController.editarUsuarios);
 router.delete('/usuarios/:id', UsuariosController.apagarUsuarios);
 router.post('/usuarios/login', UsuariosController.login);
+router.put('/usuarios/:id', uploadUsuarios.single('imagem'), UsuariosController.editarUsuarios);
 
 // ROTAS DE NEGOCIAÇÕES
 router.get('/Negociacoes', NegociacoesController.listarNegociacoes);

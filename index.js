@@ -11,6 +11,8 @@ app.use(express.json());
 app.use(router);
 
 app.use('/public', express.static('public'));
+// ADICIONE ESTA LINHA ↓
+app.use('/uploads', express.static('uploads'));
 
 const porta = process.env.PORT || 3333;
 
@@ -21,4 +23,3 @@ app.listen(porta, () => {
 app.get('/', (request, response) => {
     response.send('Hello World!!!');
 });
-

@@ -5,16 +5,16 @@ const {gerarUrl} = require('../utils/gerarUrl');
 module.exports = {
   async listarUsuarios(request, response) {
     try {
-      const sql = `SELECT usu_id,usu_tipo_usuario,usu_nome,usu_documento,usu_email, 
-                   usu_senha,usu_endereco,usu_telefone ,usu_data_cadastro 
+      const sql = `SELECT usu_id, usu_tipo_usuario, usu_nome, usu_documento, usu_email, 
+                   usu_senha, usu_endereco, usu_telefone, usu_data_cadastro, usu_imagem 
                    FROM USUARIOS;`;
 
       const [rows] = await db.query(sql);
       const nRegistros = rows.length;
 
-      const dados = rows.map (usuarios => ({
-        ...usuarios,
-        usu_imagem: gerarUrl (usuarios.usu_imagem, 'usuarios', 'padrao.png')
+      const dados = rows.map(usuario => ({
+        ...usuario,
+        usu_imagem: gerarUrl(usuario.usu_imagem, 'usuarios', 'padrao.png')
       }));
 
       return response.status(200).json({
@@ -48,7 +48,7 @@ module.exports = {
         usu_telefone,
         usu_data_cadastro,
         agri_localizacao_propriedade,
-        agri_tipos_amendoim_cultivados, 
+        agri_tipos_amendoim_cultivados,
         agri_certificacoes,
         emp_razao_social,
         emp_nome_fantasia,
@@ -62,8 +62,8 @@ module.exports = {
         imagemFinal = request.file.filename;
         urlImagem = gerarUrl(imagemFinal, 'usuarios');
       } else {
-        imagemFinal = 'padrao.png';
-        urlImagem = gerarUrl('padrao.png', 'usuarios', 'padrao.png');
+        imagemFinal = null;
+        urlImagem = gerarUrl(null, 'usuarios', 'padrao.png');
       }
 
       const senhaCriptografada = await crypto.hashPassword(usu_senha);
@@ -77,9 +77,9 @@ module.exports = {
            (agri_nome, agri_localizacao_propriedade, agri_tipos_amendoim_cultivados, agri_certificacoes, agri_telefone, agri_email) 
            VALUES (?, ?, ?, ?, ?, ?)`,
           [
-            usu_nome, 
-            agri_localizacao_propriedade || '', 
-            agri_tipos_amendoim_cultivados || '', 
+            usu_nome,
+            agri_localizacao_propriedade || '',
+            agri_tipos_amendoim_cultivados || '',
             agri_certificacoes || '',
             usu_telefone,
             usu_email
@@ -87,7 +87,6 @@ module.exports = {
         );
         specificId = agricultorResult.insertId;
         specificTable = 'AGRICULTORES';
-        
       } else {
         const [empresaResult] = await connection.execute(
           `INSERT INTO EMPRESAS 
@@ -95,7 +94,7 @@ module.exports = {
            VALUES (?, ?, ?, ?, ?)`,
           [
             emp_razao_social || '',
-            emp_nome_fantasia || '', 
+            emp_nome_fantasia || '',
             emp_tipo_atividade || '',
             usu_telefone,
             usu_email
@@ -135,14 +134,14 @@ module.exports = {
         email: usu_email,
         tipo: usu_tipo_usuario,
         imagem: urlImagem,
-        specificId: specificId,
-        specificTable: specificTable
+        specificId,
+        specificTable
       };
 
       return response.status(200).json({
         sucesso: true,
         mensagem: "Cadastro realizado com sucesso!",
-        dados: dados,
+        dados,
       });
 
     } catch (error) {
@@ -159,197 +158,170 @@ module.exports = {
     }
   },
 
-async editarUsuarios(request, response) {
-  const connection = await db.getConnection();
-  
-  try {
-    await connection.beginTransaction();
-
-    console.log('🟢 EDITAR USUÁRIO CHAMADO');
-    console.log('📝 Parâmetros:', request.params);
-    console.log('📦 Body:', request.body);
-    console.log('📁 File:', request.file);
-
-    const { id } = request.params;
-    const { 
-      nome, 
-      email, 
-      senha, 
-      telefone,
-      cep,
-      cidade,
-      estado,
-      endereco,
-      outrasInformacoes
-    } = request.body;
+  async editarUsuarios(request, response) {
+    const connection = await db.getConnection();
     
-    // 1. Primeiro, buscar o usuário para saber o tipo e IDs relacionados
-    const [usuarioAtual] = await connection.execute(
-      `SELECT usu_tipo_usuario, agri_id, emp_id FROM USUARIOS WHERE usu_id = ?`,
-      [id]
-    );
+    try {
+      await connection.beginTransaction();
 
-    if (usuarioAtual.length === 0) {
-      await connection.rollback();
-      return response.status(404).json({
-        sucesso: false,
-        mensagem: "Usuário não encontrado.",
-      });
-    }
+      console.log('🟢 EDITAR USUÁRIO CHAMADO (COM UPLOAD)');
+      console.log('📝 Parâmetros:', request.params);
+      console.log('📦 Body:', request.body);
+      console.log('📁 File:', request.file);
 
-    const usuario = usuarioAtual[0];
-    const isAgricultor = usuario.usu_tipo_usuario === '1';
-    const specificId = isAgricultor ? usuario.agri_id : usuario.emp_id;
+      const { id } = request.params;
+      
+      const { 
+        nome, 
+        email, 
+        senha, 
+        telefone,
+        cep,
+        cidade,
+        estado,
+        endereco,
+        outrasInformacoes
+      } = request.body;
+      
+      // 1. Buscar o usuário atual
+      const [usuarioAtual] = await connection.execute(
+        `SELECT usu_tipo_usuario, agri_id, emp_id, usu_imagem FROM USUARIOS WHERE usu_id = ?`,
+        [id]
+      );
 
-    console.log('👤 Tipo de usuário:', isAgricultor ? 'Agricultor' : 'Empresa');
-    console.log('🔗 ID específico:', specificId);
-
-    let senhaCriptografada = senha;
-    if (senha) {
-      senhaCriptografada = await crypto.hashPassword(senha);
-    }
-
-    let imagemFinal = null;
-
-    if (request.file) {
-      imagemFinal = request.file.filename;
-      console.log('🖼️ Nova imagem salva:', imagemFinal);
-    }
-
-    // 2. Atualizar tabela USUARIOS
-    let sqlUsuario, valuesUsuario;
-
-    if (senha && imagemFinal) {
-      sqlUsuario = `
-        UPDATE USUARIOS 
-        SET usu_nome = ?, usu_email = ?, usu_senha = ?, usu_telefone = ?,
-            usu_cep = ?, usu_cidade = ?, usu_estado = ?, usu_endereco = ?, usu_imagem = ?
-        WHERE usu_id = ?
-      `;
-      valuesUsuario = [nome, email, senhaCriptografada, telefone, 
-                      cep, cidade, estado, endereco, imagemFinal, id];
-    } else if (senha) {
-      sqlUsuario = `
-        UPDATE USUARIOS 
-        SET usu_nome = ?, usu_email = ?, usu_senha = ?, usu_telefone = ?,
-            usu_cep = ?, usu_cidade = ?, usu_estado = ?, usu_endereco = ?
-        WHERE usu_id = ?
-      `;
-      valuesUsuario = [nome, email, senhaCriptografada, telefone, 
-                      cep, cidade, estado, endereco, id];
-    } else if (imagemFinal) {
-      sqlUsuario = `
-        UPDATE USUARIOS 
-        SET usu_nome = ?, usu_email = ?, usu_telefone = ?,
-            usu_cep = ?, usu_cidade = ?, usu_estado = ?, usu_endereco = ?, usu_imagem = ?
-        WHERE usu_id = ?
-      `;
-      valuesUsuario = [nome, email, telefone, 
-                      cep, cidade, estado, endereco, imagemFinal, id];
-    } else {
-      sqlUsuario = `
-        UPDATE USUARIOS 
-        SET usu_nome = ?, usu_email = ?, usu_telefone = ?,
-            usu_cep = ?, usu_cidade = ?, usu_estado = ?, usu_endereco = ?
-        WHERE usu_id = ?
-      `;
-      valuesUsuario = [nome, email, telefone, 
-                      cep, cidade, estado, endereco, id];
-    }
-
-    console.log('🔧 SQL Usuário:', sqlUsuario);
-    console.log('📋 Values Usuário:', valuesUsuario);
-
-    const [resultUsuario] = await connection.execute(sqlUsuario, valuesUsuario);
-    
-    if (resultUsuario.affectedRows === 0) {
-      await connection.rollback();
-      return response.status(404).json({
-        sucesso: false,
-        mensagem: "Usuário não encontrado para atualização.",
-      });
-    }
-
-    // 3. Atualizar tabela específica (AGRICULTORES ou EMPRESAS)
-    if (specificId) {
-      let sqlSpecific, valuesSpecific;
-
-      if (isAgricultor) {
-        // Atualizar AGRICULTORES
-        sqlSpecific = `
-          UPDATE AGRICULTORES 
-          SET agri_nome = ?, agri_telefone = ?, agri_email = ?,
-              agri_localizacao_propriedade = ?, agri_outras_informacoes = ?
-          WHERE agri_id = ?
-        `;
-        valuesSpecific = [
-          nome, 
-          telefone, 
-          email,
-          endereco, // usando endereco como localizacao_propriedade
-          outrasInformacoes,
-          specificId
-        ];
-        console.log('🌱 Atualizando AGRICULTOR ID:', specificId);
-      } else {
-        // Atualizar EMPRESAS  
-        sqlSpecific = `
-          UPDATE EMPRESAS 
-          SET emp_nome_fantasia = ?, emp_telefone = ?, emp_email = ?
-          WHERE emp_id = ?
-        `;
-        valuesSpecific = [
-          nome, // usando nome como nome_fantasia
-          telefone,
-          email,
-          specificId
-        ];
-        console.log('🏢 Atualizando EMPRESA ID:', specificId);
+      if (usuarioAtual.length === 0) {
+        await connection.rollback();
+        return response.status(404).json({
+          sucesso: false,
+          mensagem: "Usuário não encontrado.",
+        });
       }
 
-      console.log('🔧 SQL Específico:', sqlSpecific);
-      console.log('📋 Values Específico:', valuesSpecific);
+      const usuario = usuarioAtual[0];
+      const isAgricultor = usuario.usu_tipo_usuario === '1';
+      const specificId = isAgricultor ? usuario.agri_id : usuario.emp_id;
 
-      const [resultSpecific] = await connection.execute(sqlSpecific, valuesSpecific);
-      console.log('✅ Tabela específica atualizada. Linhas afetadas:', resultSpecific.affectedRows);
+      console.log('👤 Tipo de usuário:', isAgricultor ? 'Agricultor' : 'Empresa');
+      console.log('🔗 ID específico:', specificId);
+
+      let senhaCriptografada = null;
+      if (senha && senha.trim() !== '') {
+        senhaCriptografada = await crypto.hashPassword(senha);
+      }
+
+      // CORREÇÃO: Lidar com o upload de imagem
+      let imagemFinal = usuario.usu_imagem;
+      
+      if (request.file) {
+        imagemFinal = request.file.filename;
+        console.log('🖼️ Nova imagem salva:', imagemFinal);
+      }
+
+      // 2. Montar query dinâmica para USUARIOS
+      const updates = [];
+      const values = [];
+
+      if (nome) { updates.push('usu_nome = ?'); values.push(nome); }
+      if (email) { updates.push('usu_email = ?'); values.push(email); }
+      if (senhaCriptografada) { updates.push('usu_senha = ?'); values.push(senhaCriptografada); }
+      if (telefone) { updates.push('usu_telefone = ?'); values.push(telefone); }
+      if (cep) { updates.push('usu_cep = ?'); values.push(cep); }
+      if (cidade) { updates.push('usu_cidade = ?'); values.push(cidade); }
+      if (estado) { updates.push('usu_estado = ?'); values.push(estado); }
+      if (endereco) { updates.push('usu_endereco = ?'); values.push(endereco); }
+      if (imagemFinal) { updates.push('usu_imagem = ?'); values.push(imagemFinal); }
+
+      values.push(id);
+
+      if (updates.length > 0) {
+        const sqlUsuario = `UPDATE USUARIOS SET ${updates.join(', ')} WHERE usu_id = ?`;
+        console.log('🔧 SQL Usuário:', sqlUsuario);
+        console.log('📋 Values Usuário:', values);
+
+        const [resultUsuario] = await connection.execute(sqlUsuario, values);
+        
+        if (resultUsuario.affectedRows === 0) {
+          await connection.rollback();
+          return response.status(404).json({
+            sucesso: false,
+            mensagem: "Usuário não encontrado para atualização.",
+          });
+        }
+      }
+
+      // 3. Atualizar tabela específica
+      if (specificId) {
+        if (isAgricultor) {
+          const agricultorUpdates = [];
+          const agricultorValues = [];
+
+          if (nome) { agricultorUpdates.push('agri_nome = ?'); agricultorValues.push(nome); }
+          if (telefone) { agricultorUpdates.push('agri_telefone = ?'); agricultorValues.push(telefone); }
+          if (email) { agricultorUpdates.push('agri_email = ?'); agricultorValues.push(email); }
+          if (endereco) { agricultorUpdates.push('agri_localizacao_propriedade = ?'); agricultorValues.push(endereco); }
+          if (outrasInformacoes) { agricultorUpdates.push('agri_outras_informacoes = ?'); agricultorValues.push(outrasInformacoes); }
+
+          agricultorValues.push(specificId);
+
+          if (agricultorUpdates.length > 0) {
+            const sqlAgricultor = `UPDATE AGRICULTORES SET ${agricultorUpdates.join(', ')} WHERE agri_id = ?`;
+            await connection.execute(sqlAgricultor, agricultorValues);
+          }
+        } else {
+          const empresaUpdates = [];
+          const empresaValues = [];
+
+          if (nome) { empresaUpdates.push('emp_nome_fantasia = ?'); empresaValues.push(nome); }
+          if (telefone) { empresaUpdates.push('emp_telefone = ?'); empresaValues.push(telefone); }
+          if (email) { empresaUpdates.push('emp_email = ?'); empresaValues.push(email); }
+
+          empresaValues.push(specificId);
+
+          if (empresaUpdates.length > 0) {
+            const sqlEmpresa = `UPDATE EMPRESAS SET ${empresaUpdates.join(', ')} WHERE emp_id = ?`;
+            await connection.execute(sqlEmpresa, empresaValues);
+          }
+        }
+      }
+
+      await connection.commit();
+
+      // CORREÇÃO: Retornar apenas o nome do arquivo, não a URL completa
+      const dados = {
+        id,
+        nome,
+        email,
+        telefone,
+        cep,
+        cidade,
+        estado,
+        endereco,
+        imagem: imagemFinal, // ← CORREÇÃO: Retornar apenas o nome do arquivo
+        tipo: usuario.usu_tipo_usuario,
+        specificId: specificId
+      };
+
+      console.log('✅ Usuário atualizado com sucesso');
+      console.log('📸 Imagem retornada:', imagemFinal);
+
+      return response.status(200).json({
+        sucesso: true,
+        mensagem: `Usuário ${id} atualizado com sucesso`,
+        dados,
+      });
+
+    } catch (error) {
+      await connection.rollback();
+      console.error('❌ Erro ao atualizar usuário:', error);
+      return response.status(500).json({
+        sucesso: false,
+        mensagem: "Erro na atualização do usuário.",
+        dados: error.message,
+      });
+    } finally {
+      connection.release();
     }
-
-    await connection.commit();
-
-    const dados = {
-      id,
-      nome,
-      email,
-      telefone,
-      cep,
-      cidade,
-      estado,
-      endereco,
-      imagem: imagemFinal ? gerarUrl(imagemFinal, 'usuarios') : null,
-      tipo: usuario.usu_tipo_usuario,
-      specificId: specificId
-    };
-
-    console.log('✅ Usuário e tabela específica atualizados com sucesso');
-
-    return response.status(200).json({
-      sucesso: true,
-      mensagem: `Usuário ${id} atualizado com sucesso`,
-      dados,
-    });
-
-  } catch (error) {
-    await connection.rollback();
-    console.error('❌ Erro ao atualizar usuário:', error);
-    return response.status(500).json({
-      sucesso: false,
-      mensagem: "Erro na atualização do usuário.",
-      dados: error.message,
-    });
-  } finally {
-    connection.release();
-  }
-},
+  },
 
   async apagarUsuarios(request, response) {
     try {
@@ -498,75 +470,75 @@ async editarUsuarios(request, response) {
   },
 
   async buscarUsuarioPorId(request, response) {
-  try {
-    const { id } = request.params;
+    try {
+      const { id } = request.params;
 
-    const sql = `
-      SELECT u.*, 
-             a.agri_localizacao_propriedade, a.agri_tipos_amendoim_cultivados,
-             a.agri_certificacoes, a.agri_outras_informacoes,
-             e.emp_razao_social, e.emp_nome_fantasia, e.emp_tipo_atividade
-      FROM USUARIOS u
-      LEFT JOIN AGRICULTORES a ON u.agri_id = a.agri_id
-      LEFT JOIN EMPRESAS e ON u.emp_id = e.emp_id
-      WHERE u.usu_id = ?
-    `;
+      const sql = `
+        SELECT u.*, 
+               a.agri_localizacao_propriedade, a.agri_tipos_amendoim_cultivados,
+               a.agri_certificacoes, a.agri_outras_informacoes,
+               e.emp_razao_social, e.emp_nome_fantasia, e.emp_tipo_atividade
+        FROM USUARIOS u
+        LEFT JOIN AGRICULTORES a ON u.agri_id = a.agri_id
+        LEFT JOIN EMPRESAS e ON u.emp_id = e.emp_id
+        WHERE u.usu_id = ?
+      `;
 
-    const [rows] = await db.query(sql, [id]);
-    
-    if (rows.length === 0) {
-      return response.status(404).json({
+      const [rows] = await db.query(sql, [id]);
+      
+      if (rows.length === 0) {
+        return response.status(404).json({
+          sucesso: false,
+          mensagem: "Usuário não encontrado",
+          dados: null
+        });
+      }
+
+      const usuario = rows[0];
+      
+      let nomeExibicao = usuario.usu_nome;
+      if (usuario.usu_tipo_usuario === '1' && usuario.agri_localizacao_propriedade) {
+        nomeExibicao = usuario.agri_localizacao_propriedade;
+      } else if (usuario.usu_tipo_usuario === '2' && usuario.emp_nome_fantasia) {
+        nomeExibicao = usuario.emp_nome_fantasia;
+      }
+      
+      const dadosFormatados = {
+        id: usuario.usu_id,
+        tipo: usuario.usu_tipo_usuario,
+        nome: usuario.usu_nome,
+        nomeExibicao: nomeExibicao,
+        email: usuario.usu_email,
+        documento: usuario.usu_documento,
+        telefone: usuario.usu_telefone,
+        dataCadastro: usuario.usu_data_cadastro,
+        imagem: usuario.usu_imagem ,
+        cep: usuario.usu_cep,
+        cidade: usuario.usu_cidade,
+        estado: usuario.usu_estado,
+        endereco: usuario.usu_endereco,
+        localizacaoPropriedade: usuario.agri_localizacao_propriedade,
+        tiposAmendoim: usuario.agri_tipos_amendoim_cultivados,
+        certificacoes: usuario.agri_certificacoes,
+        outrasInformacoes: usuario.agri_outras_informacoes,
+        razaoSocial: usuario.emp_razao_social,
+        nomeFantasia: usuario.emp_nome_fantasia,
+        tipoAtividade: usuario.emp_tipo_atividade
+      };
+
+      return response.status(200).json({
+        sucesso: true,
+        mensagem: "Usuário encontrado",
+        dados: dadosFormatados
+      });
+
+    } catch (error) {
+      console.error('Erro ao buscar usuário:', error);
+      return response.status(500).json({
         sucesso: false,
-        mensagem: "Usuário não encontrado",
-        dados: null
+        mensagem: "Erro ao buscar usuário",
+        dados: error.message
       });
     }
-
-    const usuario = rows[0];
-    
-    // Determinar qual nome usar baseado no tipo
-    let nomeExibicao = usuario.usu_nome;
-    if (usuario.usu_tipo_usuario === '1' && usuario.agri_localizacao_propriedade) {
-      nomeExibicao = usuario.agri_localizacao_propriedade;
-    } else if (usuario.usu_tipo_usuario === '2' && usuario.emp_nome_fantasia) {
-      nomeExibicao = usuario.emp_nome_fantasia;
-    }
-    
-    const dadosFormatados = {
-      id: usuario.usu_id,
-      tipo: usuario.usu_tipo_usuario,
-      nome: usuario.usu_nome,
-      nomeExibicao: nomeExibicao,
-      email: usuario.usu_email,
-      documento: usuario.usu_documento,
-      telefone: usuario.usu_telefone,
-      dataCadastro: usuario.usu_data_cadastro,
-      imagem: usuario.usu_imagem,
-      cep: usuario.usu_cep,
-      cidade: usuario.usu_cidade,
-      estado: usuario.usu_estado,
-      endereco: usuario.usu_endereco,
-      localizacaoPropriedade: usuario.agri_localizacao_propriedade,
-      tiposAmendoim: usuario.agri_tipos_amendoim_cultivados,
-      certificacoes: usuario.agri_certificacoes,
-      outrasInformacoes: usuario.agri_outras_informacoes,
-      razaoSocial: usuario.emp_razao_social,
-      nomeFantasia: usuario.emp_nome_fantasia,
-      tipoAtividade: usuario.emp_tipo_atividade
-    };
-
-    return response.status(200).json({
-      sucesso: true,
-      mensagem: "Usuário encontrado",
-      dados: dadosFormatados
-    });
-
-  } catch (error) {
-    console.error('Erro ao buscar usuário:', error);
-    return response.status(500).json({
-      sucesso: false,
-      mensagem: "Erro ao buscar usuário",
-      dados: error.message
-    });
   }
-}};
+};
