@@ -386,5 +386,75 @@ module.exports = {
     } catch (error) {
       return res.status(500).json({ sucesso: false, mensagem: 'Erro ao listar usuários', dados: error.message });
     }
+  },
+
+  async buscarUsuarioPorId(request, response) {
+  try {
+    const { id } = request.params;
+
+    const sql = `
+      SELECT 
+        u.*,
+        a.agri_localizacao_propriedade,
+        a.agri_tipos_amendoim_cultivados,
+        a.agri_certificacoes,
+        a.agri_outras_informacoes,
+        e.emp_razao_social,
+        e.emp_nome_fantasia,
+        e.emp_tipo_atividade
+      FROM USUARIOS u
+      LEFT JOIN AGRICULTORES a ON u.agri_id = a.agri_id
+      LEFT JOIN EMPRESAS e ON u.emp_id = e.emp_id
+      WHERE u.usu_id = ?
+    `;
+
+    const [rows] = await db.query(sql, [id]);
+    
+    if (rows.length === 0) {
+      return response.status(404).json({
+        sucesso: false,
+        mensagem: "Usuário não encontrado",
+        dados: null
+      });
+    }
+
+    const usuario = rows[0];
+    
+    const dadosFormatados = {
+      id: usuario.usu_id,
+      tipo: usuario.usu_tipo_usuario,
+      nome: usuario.usu_nome,
+      email: usuario.usu_email,
+      documento: usuario.usu_documento,
+      endereco: usuario.usu_endereco,
+      telefone: usuario.usu_telefone,
+      dataCadastro: usuario.usu_data_cadastro,
+      imagem: usuario.usu_imagem, // ou gerarUrl se tiver essa função
+      // Dados específicos
+      localizacaoPropriedade: usuario.agri_localizacao_propriedade,
+      tiposAmendoim: usuario.agri_tipos_amendoim_cultivados,
+      certificacoes: usuario.agri_certificacoes,
+      outrasInformacoes: usuario.agri_outras_informacoes,
+      razaoSocial: usuario.emp_razao_social,
+      nomeFantasia: usuario.emp_nome_fantasia,
+      tipoAtividade: usuario.emp_tipo_atividade
+    };
+
+    return response.status(200).json({
+      sucesso: true,
+      mensagem: "Usuário encontrado",
+      dados: dadosFormatados
+    });
+
+  } catch (error) {
+    console.error('Erro ao buscar usuário:', error);
+    return response.status(500).json({
+      sucesso: false,
+      mensagem: "Erro ao buscar usuário",
+      dados: error.message
+    });
   }
+}
 };
+
+

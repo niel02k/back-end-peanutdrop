@@ -16,6 +16,7 @@ router.delete('/usuarios/:id', UsuariosController.apagarUsuarios);
 router.post('/usuarios/login', UsuariosController.login);
 // Listagem com filtros/paginação
 router.get('/usuarios/filtros', UsuariosController.listarUsuariosFiltro);
+router.get('/usuarios/:id', UsuariosController.buscarUsuarioPorId);
 
 
 router.get('/Negociacoes', NegociacoesController.listarNegociacoes); 
