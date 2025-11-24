@@ -1,3 +1,25 @@
+CREATE TABLE EMPRESAS (
+    emp_id INT PRIMARY KEY AUTO_INCREMENT,
+    emp_razao_social VARCHAR(255) NOT NULL,
+    emp_nome_fantasia VARCHAR(255) NOT NULL,
+    emp_tipo_atividade VARCHAR(255),
+    emp_telefone VARCHAR(12),
+    emp_email VARCHAR(255) UNIQUE NOT NULL,
+    emp_img VARCHAR(255)
+);
+
+CREATE TABLE AGRICULTORES (
+    agri_id INT PRIMARY KEY AUTO_INCREMENT,
+    agri_nome VARCHAR(255),
+    agri_localizacao_propriedade VARCHAR(255),
+    agri_tipos_amendoim_cultivados VARCHAR(255),
+    agri_certificacoes VARCHAR(255),
+    agri_outras_informacoes VARCHAR(255),
+    agri_telefone VARCHAR(12),
+    agri_email VARCHAR(255),
+    agri_img VARCHAR(255)
+);
+
 CREATE TABLE USUARIOS (
     usu_id INT PRIMARY KEY AUTO_INCREMENT,
     usu_tipo_usuario TINYINT NOT NULL,
@@ -9,20 +31,16 @@ CREATE TABLE USUARIOS (
     usu_endereco VARCHAR(255),
     usu_telefone VARCHAR(12),
     usu_data_cadastro DATE,
-  
+    agri_id INT NULL,
+    emp_id INT NULL,    
+    usu_cep VARCHAR(9),
+    usu_cidade VARCHAR(100),
+    usu_estado VARCHAR(2),
     FOREIGN KEY (agri_id) REFERENCES AGRICULTORES(agri_id),
     FOREIGN KEY (emp_id) REFERENCES EMPRESAS(emp_id)
 );
 
-CREATE TABLE EMPRESAS (
-    emp_id INT PRIMARY KEY AUTO_INCREMENT,
-    emp_razao_social VARCHAR(255) NOT NULL,
-    emp_nome_fantasia VARCHAR(255) NOT NULL,
-    emp_tipo_atividade VARCHAR(255),
-    emp_telefone VARCHAR(12),
-    emp_email VARCHAR(255) UNIQUE NOT NULL,
-    emp_img VARCHAR(255)
-);
+
 
 
 CREATE TABLE CERTIFICACOES (
@@ -40,17 +58,7 @@ CREATE TABLE AMENDOINS (
     amen_outras_caracteristicas VARCHAR (255)
 );
 
-CREATE TABLE AGRICULTORES (
-    agri_id INT PRIMARY KEY AUTO_INCREMENT,
-    agri_nome VARCHAR(255),
-    agri_localizacao_propriedade VARCHAR(255),
-    agri_tipos_amendoim_cultivados VARCHAR(255),
-    agri_certificacoes VARCHAR(255),
-    agri_outras_informacoes VARCHAR(255),
-    agri_telefone VARCHAR(12),
-    agri_email VARCHAR(255),
-    agri_img VARCHAR(255)
-);
+
 
 CREATE TABLE RASTREAMENTO_PRODUCAO (
     rast_id INT PRIMARY KEY AUTO_INCREMENT,
