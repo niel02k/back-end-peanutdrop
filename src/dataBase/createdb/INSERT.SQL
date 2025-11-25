@@ -29,10 +29,12 @@ INSERT INTO AMENDOINS (amen_variedade, amen_tamanho, amen_outras_caracteristicas
 ('Florunner', 'Grande', 'Resistente a pragas');
 
 -- Inserindo agricultores (3 agricultores)
-INSERT INTO AGRICULTORES (agri_nome, agri_localizacao_propriedade, agri_tipos_amendoim_cultivados, agri_certificacoes, agri_outras_informacoes, agri_img) VALUES
-('João da Silva', 'Fazenda São José', 'Runner, Virginia', 'Certificação de Qualidade, Selo Orgânico', 'Solo argiloso', 'agricultor1.jpg'),
-('Maria Oliveira', 'Sítio Boa Esperança', 'Valência, Español', 'Boas Práticas de Fabricação', 'Cultivo orgânico', 'agricultor2.jpg'),
-('Carlos Santos', 'Chácara Bela Vista', 'Florunner', 'ISO 22000', 'Sistema de irrigação moderno', 'agricultor3.jpg');
+INSERT INTO AGRICULTORES 
+(agri_nome, agri_localizacao_propriedade, agri_tipos_amendoim_cultivados, agri_certificacoes, agri_outras_informacoes, agri_img, agri_telefone, agri_email) 
+VALUES
+('João da Silva', 'Fazenda São José', 'Runner, Virginia', 'Certificação de Qualidade, Selo Orgânico', 'Solo argiloso', 'agricultor1.jpg', '11999999999', 'joao.silva@email.com'),
+('Maria Oliveira', 'Sítio Boa Esperança', 'Valência, Español', 'Boas Práticas de Fabricação', 'Cultivo orgânico', 'agricultor2.jpg', '11888888888', 'maria.oliveira@email.com'),
+('Carlos Santos', 'Chácara Bela Vista', 'Florunner', 'ISO 22000', 'Sistema de irrigação moderno', 'agricultor3.jpg', '11777777777', 'carlos.santos@email.com');
 
 
 -- Inserindo rastreamento de produção (4 registros por agricultor)

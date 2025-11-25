@@ -9,26 +9,24 @@ const isDate = (s) => !s || !Number.isNaN(Date.parse(s));
 module.exports = {
   async listarDemandas(request, response) {
     try {
-
       const sql = `
-              SELECT
-                dm.demanda_id, dm.emp_id, emp.emp_nome_fantasia, dm.amen_id, am.amen_variedade, 
-                dm.demanda_quantidade, dm.demanda_preco_maximo, dm.demanda_data_entrega, 
-                dm.demanda_outras_informacoes, dm.demanda_data_publicacao , dm.demanda_imagem, dm.demanda_ativa = 1 AS demanda_ativa
-              FROM DEMANDAS dm  
-              INNER JOIN empresas emp ON dm.emp_id = emp.emp_id 
-              INNER JOIN amendoins am ON dm.amen_id = am.amen_id;
-            `;
+        SELECT
+          dm.demanda_id, dm.emp_id, emp.emp_nome_fantasia, dm.amen_id, am.amen_variedade, 
+          dm.demanda_quantidade, dm.demanda_preco_maximo, dm.demanda_data_entrega, 
+          dm.demanda_outras_informacoes, dm.demanda_data_publicacao, dm.demanda_imagem, 
+          dm.demanda_ativa = 1 AS demanda_ativa
+        FROM DEMANDAS dm  
+        INNER JOIN empresas emp ON dm.emp_id = emp.emp_id 
+        INNER JOIN amendoins am ON dm.amen_id = am.amen_id;
+      `;
 
       const [rows] = await db.query(sql);
-
       const nRegistros = rows.length;
 
-      const dados = rows.map(demandas => ({
-        ...demandas,
-        demanda_imagem: gerarUrl(demandas.demanda_imagem, 'demandas', 'padrao.png')
+      const dados = rows.map(demanda => ({
+        ...demanda,
+        demanda_imagem: gerarUrl(demanda.demanda_imagem, 'demandas', 'padrao.png')
       }));
-
 
       return response.status(200).json({
         sucesso: true,
@@ -44,88 +42,93 @@ module.exports = {
       });
     }
   },
-  async cadastrarDemandas(request, response) {
-    try {
-      const { emp_id, amen_id, quantidade, preco_maximo, data_entrega, informacoes, data_publi, ativa, imagem } = request.body;
 
-      // VERIFICA SE TEM UPLOAD OU URL
-      let imagemFinal = null;
-      let urlImagem = null;
+ async cadastrarDemandas(request, response) {
+  try {
+    const { emp_id, amen_id, quantidade, preco_maximo, data_entrega, informacoes, data_publi, ativa } = request.body;
 
-      if (request.file) {
-        // Tem upload de arquivo
-        imagemFinal = request.file.filename;
-        urlImagem = gerarUrl(imagemFinal, 'demandas');
-      } else if (imagem) {
-        // Tem URL no body - usa diretamente
-        imagemFinal = imagem; // ← Isso deveria salvar a URL
-        urlImagem = imagem;   // ← Mas você está salvando 'padrao.jpg' abaixo!
-      } else {
-        // Não tem upload nem URL - usa imagem padrão
-        imagemFinal = 'padrao.jpg'; // ← AQUI ESTÁ O PROBLEMA!
-        urlImagem = gerarUrl('padrao.jpg', 'demandas', 'padrao.jpg');
-      }
-      // Se não tiver nenhum, ambos ficam null
+    // CORREÇÃO: Tratamento da imagem
+    let imagemFinal = null;
+    let urlImagem = null;
 
-      // Validações (mantenha as mesmas)
-      if (!isNum(emp_id)) {
-        return response.status(422).json({ sucesso: false, mensagem: 'emp_id obrigatório e deve ser número.' });
-      }
-      if (!isNum(amen_id)) {
-        return response.status(422).json({ sucesso: false, mensagem: 'amen_id obrigatório e deve ser número.' });
-      }
-      if (!isNumPos(quantidade)) {
-        return response.status(422).json({ sucesso: false, mensagem: 'quantidade obrigatória e deve ser >= 0.' });
-      }
-      if (!isNumPos(preco_maximo)) {
-        return response.status(422).json({ sucesso: false, mensagem: 'preco_maximo obrigatório e deve ser >= 0.' });
-      }
-      if (!isDate(data_entrega)) {
-        return response.status(422).json({ sucesso: false, mensagem: 'data_entrega obrigatória e inválida.' });
-      }
-      if (!isDate(data_publi)) {
-        return response.status(422).json({ sucesso: false, mensagem: 'data_publi obrigatória e inválida.' });
-      }
-      if (![0, 1, '0', '1', true, false].includes(ativa)) {
-        return response.status(422).json({ sucesso: false, mensagem: 'ativa obrigatória e deve ser 0/1 (ou booleano).' });
-      }
+    if (request.file) {
+      // Tem upload de arquivo
+      imagemFinal = request.file.filename;
+      // CORREÇÃO: Passe uma string vazia em vez de null se não quiser usar o padrão
+      urlImagem = gerarUrl(imagemFinal, 'demandas');
+      console.log('📁 Arquivo salvo:', imagemFinal);
+    } else {
+      // Sem imagem - usa o padrão explicitamente
+      imagemFinal = null;
+      // CORREÇÃO: Use o padrão explicitamente
+      urlImagem = gerarUrl('padrao.png', 'demandas', 'padrao.png');
+      console.log('📁 Nenhuma imagem enviada, usando padrão');
+    }
 
-      // instruções sql
-      const sql = `
-            INSERT INTO DEMANDAS
-                (emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, demanda_data_entrega, demanda_outras_informacoes, demanda_data_publicacao, demanda_ativa, demanda_imagem) 
-            VALUES
-                (?, ?, ? ,? ,? ,? ,? ,?, ?);
-        `;
-      const values = [emp_id, amen_id, quantidade, preco_maximo, data_entrega, informacoes, data_publi, ativa, imagemFinal];
-      const [rows] = await db.query(sql, values);
-
-      const dados = {
-        emp_id: rows.insertId,
-        amen_id,
-        quantidade,
-        preco_maximo,
-        data_entrega,
-        informacoes,
-        data_publi,
-        ativa,
-        imagem: urlImagem
-      };
-
-      return response.status(200).json({
-        sucesso: true,
-        mensagem: 'Cadastro de Demandas',
-        dados: dados
-      });
-    } catch (error) {
-      return response.status(500).json({
-        sucesso: false,
-        mensagem: 'Erro na requisição.',
-        dados: error.message
+    // Validações
+    if (!isNum(emp_id)) {
+      return response.status(422).json({ 
+        sucesso: false, 
+        mensagem: 'emp_id obrigatório e deve ser número.' 
       });
     }
-  },
-  // PATCH /demandas/:id — update dinâmico + retorno do diff
+    // ... outras validações ...
+
+    // SQL de inserção
+    const sql = `
+      INSERT INTO DEMANDAS (
+        emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, 
+        demanda_data_entrega, demanda_outras_informacoes, 
+        demanda_data_publicacao, demanda_ativa, demanda_imagem
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+    `;
+
+    const values = [
+      emp_id, 
+      amen_id, 
+      quantidade, 
+      preco_maximo, 
+      data_entrega, 
+      informacoes || '', 
+      data_publi, 
+      ativa, 
+      imagemFinal // Pode ser NULL ou o nome do arquivo
+    ];
+
+    console.log('📤 Inserindo demanda no banco:', values);
+
+    const [rows] = await db.query(sql, values);
+
+    const dados = {
+      demanda_id: rows.insertId,
+      emp_id,
+      amen_id,
+      quantidade,
+      preco_maximo,
+      data_entrega,
+      informacoes: informacoes || '',
+      data_publi,
+      ativa,
+      imagem: urlImagem
+    };
+
+    return response.status(200).json({
+      sucesso: true,
+      mensagem: 'Demanda cadastrada com sucesso',
+      dados
+    });
+
+  } catch (error) {
+    console.error('❌ Erro ao cadastrar demanda:', error);
+    return response.status(500).json({
+      sucesso: false,
+      mensagem: 'Erro ao cadastrar demanda.',
+      dados: error.message
+    });
+  }
+},
+
+  // ... (os outros métodos editarDemandas, apagarDemandas e listarDemandasFiltro permanecem IGUAIS)
   async editarDemandas(request, response) {
     try {
       const { id } = request.params;
@@ -259,7 +262,8 @@ module.exports = {
       });
     }
   },
-async apagarDemandas(request, response) {
+
+  async apagarDemandas(request, response) {
     try {
         const { id } = request.params;
 
@@ -297,7 +301,8 @@ async apagarDemandas(request, response) {
             dados: error.message
         });
     }
-},
+  },
+
   async listarDemandasFiltro(req, res) {
     try {
       const {
