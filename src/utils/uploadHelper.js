@@ -33,12 +33,16 @@ const uploadDemandas = multer({
     fileSize: 15 * 1024 * 1024
   },
   fileFilter: (req, file, cb) => {
-    console.log('🔄 MULTER DEMANDAS - Processando arquivo...');
-    console.log('   📝 Fieldname:', file.fieldname);
-    console.log('   📝 Originalname:', file.originalname);
-    console.log('   📝 Mimetype:', file.mimetype);
-    console.log('   📝 Size:', file.size);
+    console.log('\n🔄 ========== MULTER DEMANDAS ==========');
+    console.log('📝 Fieldname:', file.fieldname);
+    console.log('📝 Originalname:', file.originalname);
+    console.log('📝 Mimetype:', file.mimetype);
+    console.log('📝 Size:', file.size);
+    console.log('📝 Content-Type:', req.headers['content-type']);
     
+    // Verifica se é multipart
+    console.log('📝 É multipart?', req.is('multipart/form-data'));
+
     // Permite apenas imagens
     if (file.mimetype.startsWith('image/')) {
       console.log('✅ MULTER - Arquivo aceito');
@@ -47,6 +51,7 @@ const uploadDemandas = multer({
       console.log('❌ MULTER - Tipo de arquivo não permitido');
       cb(new Error('Apenas imagens são permitidas!'), false);
     }
+    console.log('====================================\n');
   }
 });
 

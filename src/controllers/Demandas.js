@@ -23,9 +23,26 @@ module.exports = {
       const [rows] = await db.query(sql);
       const nRegistros = rows.length;
 
+      // ✅ CORREÇÃO: Normalizar URL igual ao perfil
+      const normalizarUrlImagem = (urlOuNome) => {
+        if (!urlOuNome) return null;
+        
+        if (urlOuNome.includes('://')) {
+          if (urlOuNome.includes('/public/demandas/')) {
+            const nomeArquivo = urlOuNome.split('/').pop();
+            return `http://localhost:3333/uploads/demandas/${nomeArquivo}`;
+          }
+          return urlOuNome;
+        }
+        
+        return `http://localhost:3333/uploads/demandas/${urlOuNome}`;
+      };
+
       const dados = rows.map(demanda => ({
         ...demanda,
-        demanda_imagem: gerarUrl(demanda.demanda_imagem, 'demandas', 'padrao.png')
+        // ✅ USA A MESMA LÓGICA DO PERFIL
+        demanda_imagem: normalizarUrlImagem(demanda.demanda_imagem) || 
+                       gerarUrl(demanda.demanda_imagem, 'demandas', 'padrao.png')
       }));
 
       return response.status(200).json({
@@ -43,106 +60,119 @@ module.exports = {
     }
   },
 
- async cadastrarDemandas(request, response) {
-  console.log('🔵 [DEMANDAS] Iniciando cadastro...');
-  
-  try {
-    console.log('📥 Arquivo recebido:', request.file);
-    console.log('📥 Body recebido:', request.body);
+  async cadastrarDemandas(request, response) {
+    console.log('\n🔵 ========== INICIANDO CADASTRO DEMANDA ==========');
+    
+    try {
+      // 🔍 DEBUG ESPECÍFICO DO MULTER
+      console.log('📥 REQ.FILE (MULTER):', request.file);
+      console.log('📥 REQ.BODY:', request.body);
+      console.log('📥 Headers - Content-Type:', request.headers['content-type']);
 
-    // Extrai os dados do body
-    const { 
-      emp_id, 
-      amen_id, 
-      quantidade, 
-      preco_maximo, 
-      data_entrega, 
-      informacoes = '',
-      data_publi,
-      ativa = '1'
-    } = request.body;
+      // 🔍 VERIFICAÇÃO DO PROBLEMA
+      if (!request.file) {
+        console.log('\n❌ ========== MULTER NÃO PROCESSOU ARQUIVO ==========');
+        console.log('🔍 Investigando causas...');
+        
+        // Verifica se a requisição é multipart
+        const isMultipart = request.is('multipart/form-data');
+        console.log('   ✅ É multipart/form-data?', isMultipart);
+        
+        // Verifica headers
+        console.log('   ✅ Content-Type header:', request.headers['content-type']);
+        console.log('   ✅ Content-Length header:', request.headers['content-length']);
+        
+        console.log('❌ O arquivo não chegou ao Multer');
+        console.log('💡 Possíveis soluções:');
+        console.log('   1. Verifique se o fieldname no frontend é "imagem"');
+        console.log('   2. Verifique se o arquivo é uma imagem válida');
+        console.log('   3. Verifique o console do navegador para ver o FormData');
+        console.log('================================================\n');
+      } else {
+        console.log('\n✅ ========== MULTER PROCESSOU ARQUIVO ==========');
+        console.log('✅ Arquivo recebido:', {
+          fieldname: request.file.fieldname,
+          originalname: request.file.originalname, 
+          filename: request.file.filename,
+          size: request.file.size,
+          mimetype: request.file.mimetype
+        });
+        console.log('==============================================\n');
+      }
 
-    // ✅ CORREÇÃO: Processa a imagem IGUAL ao usuário
-    let imagemFinal = null;
-    let urlImagem = null;
+      // Extrai os dados do body
+      const { 
+        emp_id, 
+        amen_id, 
+        quantidade, 
+        preco_maximo, 
+        data_entrega, 
+        informacoes = '',
+        data_publi,
+        ativa = '1'
+      } = request.body;
 
-    if (request.file) {
-      // Tem upload de arquivo - igual ao usuário
-      imagemFinal = request.file.filename;
-      urlImagem = gerarUrl(imagemFinal, 'demandas', 'padrao.png');
-      console.log('📁 Arquivo salvo:', imagemFinal);
-      console.log('🌐 URL gerada:', urlImagem);
-    } else {
-      // Sem imagem - usa o padrão
-      imagemFinal = null;
-      urlImagem = gerarUrl(null, 'demandas', 'padrao.png');
-      console.log('📁 Nenhuma imagem enviada, usando padrão');
-    }
+      // Processa a imagem
+      let imagemFinal = null;
+      let urlImagem = null;
 
-    const ativaBit = (ativa === '1' || ativa === 1 || ativa === true) ? 1 : 0;
+      if (request.file) {
+        imagemFinal = request.file.filename;
+        urlImagem = gerarUrl(imagemFinal, 'demandas', 'padrao.png');
+        console.log('📁 Imagem salva no banco:', imagemFinal);
+      } else {
+        imagemFinal = null;
+        urlImagem = gerarUrl(null, 'demandas', 'padrao.png');
+        console.log('📁 Usando imagem padrão');
+      }
 
-    console.log('📋 Dados finais:', {
-      emp_id, amen_id, quantidade, preco_maximo, data_entrega,
-      informacoes, data_publi, ativa: ativaBit, 
-      imagemBD: imagemFinal, // Para salvar no banco
-      imagemURL: urlImagem   // Para retornar na resposta
-    });
+      const ativaBit = (ativa === '1' || ativa === 1 || ativa === true) ? 1 : 0;
 
-    // Validações
-    if (!emp_id || !amen_id || !quantidade || !preco_maximo || !data_entrega) {
-      return response.status(400).json({
+      // Resto do código igual...
+      const sql = `
+        INSERT INTO DEMANDAS (
+          emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, 
+          demanda_data_entrega, demanda_outras_informacoes, 
+          demanda_data_publicacao, demanda_ativa, demanda_imagem
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
+      `;
+
+      const values = [
+        parseInt(emp_id), parseInt(amen_id), parseFloat(quantidade), 
+        parseFloat(preco_maximo), data_entrega, informacoes,
+        data_publi, ativaBit, imagemFinal
+      ];
+
+      console.log('🚀 Executando SQL...');
+      const [rows] = await db.query(sql, values);
+      console.log('✅ Demanda cadastrada! ID:', rows.insertId);
+
+      return response.status(200).json({
+        sucesso: true,
+        mensagem: 'Demanda cadastrada com sucesso!',
+        dados: {
+          demanda_id: rows.insertId,
+          emp_id: parseInt(emp_id),
+          amen_id: parseInt(amen_id),
+          quantidade: parseFloat(quantidade),
+          preco_maximo: parseFloat(preco_maximo),
+          data_entrega,
+          informacoes,
+          data_publi,
+          ativa: ativaBit,
+          imagem: urlImagem
+        }
+      });
+
+    } catch (error) {
+      console.error('❌ ERRO:', error);
+      return response.status(500).json({
         sucesso: false,
-        mensagem: 'Campos obrigatórios faltando'
+        mensagem: 'Erro interno: ' + error.message
       });
     }
+  },
 
-    // SQL - salva o nome do arquivo no banco
-    const sql = `
-      INSERT INTO DEMANDAS (
-        emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, 
-        demanda_data_entrega, demanda_outras_informacoes, 
-        demanda_data_publicacao, demanda_ativa, demanda_imagem
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);
-    `;
-
-    const values = [
-      parseInt(emp_id), parseInt(amen_id), parseFloat(quantidade), 
-      parseFloat(preco_maximo), data_entrega, informacoes,
-      data_publi, ativaBit, imagemFinal // ✅ Salva o filename no banco
-    ];
-
-    console.log('🚀 Executando SQL...');
-    const [rows] = await db.query(sql, values);
-    console.log('✅ Demanda cadastrada! ID:', rows.insertId);
-
-    // ✅ CORREÇÃO: Retorna com URL da imagem IGUAL ao usuário
-    return response.status(200).json({
-      sucesso: true,
-      mensagem: 'Demanda cadastrada com sucesso!',
-      dados: {
-        demanda_id: rows.insertId,
-        emp_id: parseInt(emp_id),
-        amen_id: parseInt(amen_id),
-        quantidade: parseFloat(quantidade),
-        preco_maximo: parseFloat(preco_maximo),
-        data_entrega,
-        informacoes,
-        data_publi,
-        ativa: ativaBit,
-        imagem: urlImagem // ✅ Retorna a URL completa
-      }
-    });
-
-  } catch (error) {
-    console.error('❌ ERRO:', error);
-    return response.status(500).json({
-      sucesso: false,
-      mensagem: 'Erro interno: ' + error.message
-    });
-  }
-},
-
-  // ... (os outros métodos editarDemandas, apagarDemandas e listarDemandasFiltro permanecem IGUAIS)
   async editarDemandas(request, response) {
     try {
       const { id } = request.params;
@@ -399,10 +429,25 @@ module.exports = {
       const [countR] = await db.query(countSql, values);
       const total = countR[0]?.total || 0;
 
-      // ⚠️ ADICIONE O MAP PARA GERAR URL DAS IMAGENS
+      // ✅ CORREÇÃO: Mesma lógica de normalização do listarDemandas
+      const normalizarUrlImagem = (urlOuNome) => {
+        if (!urlOuNome) return null;
+        
+        if (urlOuNome.includes('://')) {
+          if (urlOuNome.includes('/public/demandas/')) {
+            const nomeArquivo = urlOuNome.split('/').pop();
+            return `http://localhost:3333/uploads/demandas/${nomeArquivo}`;
+          }
+          return urlOuNome;
+        }
+        
+        return `http://localhost:3333/uploads/demandas/${urlOuNome}`;
+      };
+
       const dados = rows.map(demanda => ({
         ...demanda,
-        demanda_imagem: gerarUrl(demanda.demanda_imagem, 'demandas', 'padrao.png')
+        demanda_imagem: normalizarUrlImagem(demanda.demanda_imagem) || 
+                       gerarUrl(demanda.demanda_imagem, 'demandas', 'padrao.png')
       }));
 
       return res.status(200).json({
@@ -412,7 +457,7 @@ module.exports = {
         limite: limit,
         total,
         itens: dados.length,
-        dados: dados // ⚠️ RETORNE OS DADOS PROCESSADOS
+        dados: dados
       });
     } catch (error) {
       return res.status(500).json({ sucesso: false, mensagem: 'Erro ao listar demandas', dados: error.message });
