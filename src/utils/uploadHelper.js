@@ -1,32 +1,52 @@
-// Utilitário para configuração de upload de arquivos usando Multer
-// Cada entidade (Demandas, Usuários, Ofertas) possui sua própria configuração e pasta
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
-const multer = require('multer'); // Importa o Multer para upload de arquivos
-const path = require('path');     // Importa o path para manipulação de caminhos
+// Função para criar diretório se não existir
+const ensureDir = (dirPath) => {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+    console.log(`📁 Diretório criado: ${dirPath}`);
+  }
+};
 
 // Configuração de armazenamento para imagens de Demandas
 const storageDemandas = multer.diskStorage({
-  // Define o diretório de destino dos arquivos enviados
   destination: (req, file, cb) => {
-    cb(null, path.resolve(__dirname, '../../uploads/demandas'));
+    const uploadPath = path.resolve(__dirname, '../../uploads/demandas');
+    ensureDir(uploadPath);
+    console.log(`📁 Multer Demandas - Destino: ${uploadPath}`);
+    cb(null, uploadPath);
   },
-  // Define o nome do arquivo salvo (único, baseado em timestamp e número aleatório)
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname); // Pega a extensão do arquivo original
+    const ext = path.extname(file.originalname);
     const name = Date.now() + '-' + Math.round(Math.random() * 1E9) + ext;
+    console.log(`📁 Multer Demandas - Nome do arquivo: ${name}`);
     cb(null, name);
   }
 });
 
-// Instância do Multer para Demandas
+// Instância do Multer para Demandas - ✅ CORRIGIDO
 const uploadDemandas = multer({
   storage: storageDemandas,
-  limits: { fileSize: 15 * 1024 * 1024 }, // Limite de 15MB para imagens
+  limits: { 
+    fileSize: 15 * 1024 * 1024
+  },
   fileFilter: (req, file, cb) => {
-    // Permite apenas imagens nos formatos especificados
-    const allowed = ['.jpg', '.jpeg', '.png', '.gif'];
-    const ext = path.extname(file.originalname).toLowerCase();
-    cb(null, allowed.includes(ext));
+    console.log('🔄 MULTER DEMANDAS - Processando arquivo...');
+    console.log('   📝 Fieldname:', file.fieldname);
+    console.log('   📝 Originalname:', file.originalname);
+    console.log('   📝 Mimetype:', file.mimetype);
+    console.log('   📝 Size:', file.size);
+    
+    // Permite apenas imagens
+    if (file.mimetype.startsWith('image/')) {
+      console.log('✅ MULTER - Arquivo aceito');
+      cb(null, true);
+    } else {
+      console.log('❌ MULTER - Tipo de arquivo não permitido');
+      cb(new Error('Apenas imagens são permitidas!'), false);
+    }
   }
 });
 
