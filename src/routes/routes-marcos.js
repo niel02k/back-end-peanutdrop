@@ -19,7 +19,7 @@ const AmendoinsController = require('../controllers/Amendoins'); // ← Já esta
 const OfertasController = require('../controllers/Ofertas'); // ← Já estava certo
 
 // Utils
-const { uploadUsuarios, uploadOfertas } = require('../utils/uploadHelper');
+const {  uploadDemandas , uploadUsuarios, uploadOfertas } = require('../utils/uploadHelper');
 
 const { gerarUrl } = require('../utils/gerarUrl');
 
@@ -76,7 +76,7 @@ router.get('/Empresas/filtro', EmpresasController.listarEmpresasFiltro);
 
 // ROTAS DE DEMANDAS
 router.get('/Demandas', DemandasController.listarDemandas);
-router.post('/Demandas', uploadUsuarios.single('imagem'), DemandasController.cadastrarDemandas); // ← Usando uploadUsuarios existente
+router.post('/Demandas', uploadDemandas.single('imagem'), DemandasController.cadastrarDemandas); // ← CORRIGIDO
 router.patch('/Demandas/:id', DemandasController.editarDemandas);
 router.delete('/Demandas/:id', DemandasController.apagarDemandas);
 router.get('/Demandas/filtro', DemandasController.listarDemandasFiltro);
