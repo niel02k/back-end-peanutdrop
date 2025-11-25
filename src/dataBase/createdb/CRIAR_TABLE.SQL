@@ -102,6 +102,7 @@ CREATE TABLE AGR_CERTIFICACOES (
 CREATE TABLE OFERTAS (
     oferta_id INT PRIMARY KEY AUTO_INCREMENT,
     agri_id INT NOT NULL,
+    agri_nome VARCHAR(255),
     amen_id INT NOT NULL,
     oferta_quantidade INT,
     oferta_preco DECIMAL(7,2),
