@@ -128,15 +128,15 @@ module.exports = {
       const [usuarioResult] = await connection.execute(sqlUsuarios, valuesUsuarios);
       await connection.commit();
 
-      const dados = {
+     const dados = {
         id: usuarioResult.insertId,
         nome: usu_nome,
         email: usu_email,
         tipo: usu_tipo_usuario,
-        imagem: urlImagem,
-        specificId,
-        specificTable
-      };
+        agri_id: usu_tipo_usuario === '1' ? specificId : null,
+        emp_id: usu_tipo_usuario === '2' ? specificId : null,
+        imagem: urlImagem
+};
 
       return response.status(200).json({
         sucesso: true,
@@ -354,12 +354,12 @@ module.exports = {
     }
   },
 
-  async login(request, response) {
+ async login(request, response) {
     try {
       const { senha, email, tipo } = request.body;
 
       const sql = `
-        SELECT usu_id, usu_nome, usu_tipo_usuario, usu_senha
+        SELECT usu_id, usu_nome, usu_tipo_usuario, usu_senha, agri_id, emp_id
         FROM USUARIOS
         WHERE usu_email = ? AND usu_tipo_usuario = ?;
       `;
@@ -390,6 +390,8 @@ module.exports = {
         id: usuario.usu_id,
         nome: usuario.usu_nome,
         tipo: usuario.usu_tipo_usuario,
+        agri_id: usuario.agri_id,
+        emp_id: usuario.emp_id
       };
 
       return response.status(200).json({
@@ -402,6 +404,81 @@ module.exports = {
         sucesso: false,
         mensagem: "Erro na requisição.",
         dados: error.message,
+      });
+    }
+  },
+
+  async buscarUsuarioPorId(request, response) {
+    try {
+      const { id } = request.params;
+
+      const sql = `
+        SELECT u.*, 
+               a.agri_localizacao_propriedade, a.agri_tipos_amendoim_cultivados,
+               a.agri_certificacoes, a.agri_outras_informacoes,
+               e.emp_razao_social, e.emp_nome_fantasia, e.emp_tipo_atividade
+        FROM USUARIOS u
+        LEFT JOIN AGRICULTORES a ON u.agri_id = a.agri_id
+        LEFT JOIN EMPRESAS e ON u.emp_id = e.emp_id
+        WHERE u.usu_id = ?
+      `;
+
+      const [rows] = await db.query(sql, [id]);
+      
+      if (rows.length === 0) {
+        return response.status(404).json({
+          sucesso: false,
+          mensagem: "Usuário não encontrado",
+          dados: null
+        });
+      }
+
+      const usuario = rows[0];
+      
+      let nomeExibicao = usuario.usu_nome;
+      if (usuario.usu_tipo_usuario === '1' && usuario.agri_localizacao_propriedade) {
+        nomeExibicao = usuario.agri_localizacao_propriedade;
+      } else if (usuario.usu_tipo_usuario === '2' && usuario.emp_nome_fantasia) {
+        nomeExibicao = usuario.emp_nome_fantasia;
+      }
+      
+      const dadosFormatados = {
+        id: usuario.usu_id,
+        tipo: usuario.usu_tipo_usuario,
+        nome: usuario.usu_nome,
+        nomeExibicao: nomeExibicao,
+        email: usuario.usu_email,
+        documento: usuario.usu_documento,
+        telefone: usuario.usu_telefone,
+        dataCadastro: usuario.usu_data_cadastro,
+        imagem: usuario.usu_imagem,
+        cep: usuario.usu_cep,
+        cidade: usuario.usu_cidade,
+        estado: usuario.usu_estado,
+        endereco: usuario.usu_endereco,
+        agri_id: usuario.agri_id, // ← ADICIONADO
+        emp_id: usuario.emp_id,   // ← ADICIONADO
+        localizacaoPropriedade: usuario.agri_localizacao_propriedade,
+        tiposAmendoim: usuario.agri_tipos_amendoim_cultivados,
+        certificacoes: usuario.agri_certificacoes,
+        outrasInformacoes: usuario.agri_outras_informacoes,
+        razaoSocial: usuario.emp_razao_social,
+        nomeFantasia: usuario.emp_nome_fantasia,
+        tipoAtividade: usuario.emp_tipo_atividade
+      };
+
+      return response.status(200).json({
+        sucesso: true,
+        mensagem: "Usuário encontrado",
+        dados: dadosFormatados
+      });
+
+    } catch (error) {
+      console.error('Erro ao buscar usuário:', error);
+      return response.status(500).json({
+        sucesso: false,
+        mensagem: "Erro ao buscar usuário",
+        dados: error.message
       });
     }
   },
