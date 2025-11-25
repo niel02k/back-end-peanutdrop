@@ -44,37 +44,59 @@ module.exports = {
   },
 
  async cadastrarDemandas(request, response) {
+  console.log('🔵 [DEMANDAS] Iniciando cadastro...');
+  
   try {
-    const { emp_id, amen_id, quantidade, preco_maximo, data_entrega, informacoes, data_publi, ativa } = request.body;
+    console.log('📥 Arquivo recebido:', request.file);
+    console.log('📥 Body recebido:', request.body);
 
-    // CORREÇÃO: Tratamento da imagem
+    // Extrai os dados do body
+    const { 
+      emp_id, 
+      amen_id, 
+      quantidade, 
+      preco_maximo, 
+      data_entrega, 
+      informacoes = '',
+      data_publi,
+      ativa = '1'
+    } = request.body;
+
+    // ✅ CORREÇÃO: Processa a imagem IGUAL ao usuário
     let imagemFinal = null;
     let urlImagem = null;
 
     if (request.file) {
-      // Tem upload de arquivo
+      // Tem upload de arquivo - igual ao usuário
       imagemFinal = request.file.filename;
-      // CORREÇÃO: Passe uma string vazia em vez de null se não quiser usar o padrão
-      urlImagem = gerarUrl(imagemFinal, 'demandas');
+      urlImagem = gerarUrl(imagemFinal, 'demandas', 'padrao.png');
       console.log('📁 Arquivo salvo:', imagemFinal);
+      console.log('🌐 URL gerada:', urlImagem);
     } else {
-      // Sem imagem - usa o padrão explicitamente
+      // Sem imagem - usa o padrão
       imagemFinal = null;
-      // CORREÇÃO: Use o padrão explicitamente
-      urlImagem = gerarUrl('padrao.png', 'demandas', 'padrao.png');
+      urlImagem = gerarUrl(null, 'demandas', 'padrao.png');
       console.log('📁 Nenhuma imagem enviada, usando padrão');
     }
 
+    const ativaBit = (ativa === '1' || ativa === 1 || ativa === true) ? 1 : 0;
+
+    console.log('📋 Dados finais:', {
+      emp_id, amen_id, quantidade, preco_maximo, data_entrega,
+      informacoes, data_publi, ativa: ativaBit, 
+      imagemBD: imagemFinal, // Para salvar no banco
+      imagemURL: urlImagem   // Para retornar na resposta
+    });
+
     // Validações
-    if (!isNum(emp_id)) {
-      return response.status(422).json({ 
-        sucesso: false, 
-        mensagem: 'emp_id obrigatório e deve ser número.' 
+    if (!emp_id || !amen_id || !quantidade || !preco_maximo || !data_entrega) {
+      return response.status(400).json({
+        sucesso: false,
+        mensagem: 'Campos obrigatórios faltando'
       });
     }
-    // ... outras validações ...
 
-    // SQL de inserção
+    // SQL - salva o nome do arquivo no banco
     const sql = `
       INSERT INTO DEMANDAS (
         emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, 
@@ -84,46 +106,38 @@ module.exports = {
     `;
 
     const values = [
-      emp_id, 
-      amen_id, 
-      quantidade, 
-      preco_maximo, 
-      data_entrega, 
-      informacoes || '', 
-      data_publi, 
-      ativa, 
-      imagemFinal // Pode ser NULL ou o nome do arquivo
+      parseInt(emp_id), parseInt(amen_id), parseFloat(quantidade), 
+      parseFloat(preco_maximo), data_entrega, informacoes,
+      data_publi, ativaBit, imagemFinal // ✅ Salva o filename no banco
     ];
 
-    console.log('📤 Inserindo demanda no banco:', values);
-
+    console.log('🚀 Executando SQL...');
     const [rows] = await db.query(sql, values);
+    console.log('✅ Demanda cadastrada! ID:', rows.insertId);
 
-    const dados = {
-      demanda_id: rows.insertId,
-      emp_id,
-      amen_id,
-      quantidade,
-      preco_maximo,
-      data_entrega,
-      informacoes: informacoes || '',
-      data_publi,
-      ativa,
-      imagem: urlImagem
-    };
-
+    // ✅ CORREÇÃO: Retorna com URL da imagem IGUAL ao usuário
     return response.status(200).json({
       sucesso: true,
-      mensagem: 'Demanda cadastrada com sucesso',
-      dados
+      mensagem: 'Demanda cadastrada com sucesso!',
+      dados: {
+        demanda_id: rows.insertId,
+        emp_id: parseInt(emp_id),
+        amen_id: parseInt(amen_id),
+        quantidade: parseFloat(quantidade),
+        preco_maximo: parseFloat(preco_maximo),
+        data_entrega,
+        informacoes,
+        data_publi,
+        ativa: ativaBit,
+        imagem: urlImagem // ✅ Retorna a URL completa
+      }
     });
 
   } catch (error) {
-    console.error('❌ Erro ao cadastrar demanda:', error);
+    console.error('❌ ERRO:', error);
     return response.status(500).json({
       sucesso: false,
-      mensagem: 'Erro ao cadastrar demanda.',
-      dados: error.message
+      mensagem: 'Erro interno: ' + error.message
     });
   }
 },
