@@ -125,7 +125,7 @@ router.get('/Amendoins/filtro', AmendoinsController.listarAmendoinsFiltro);
 
 // ROTAS DE OFERTAS
 router.get('/Ofertas', OfertasController.listarOfertas);
-router.post('/Ofertas', uploadOfertas.single('imagem'), OfertasController.cadastrarOfertas);
+router.post('/Ofertas', uploadOfertas.single('oferta_img'), OfertasController.cadastrarOfertas);
 router.patch('/Ofertas/:id', uploadOfertas.single('imagem'), OfertasController.editarOfertas);
 router.delete('/Ofertas/:id', OfertasController.apagarOfertas);
 router.get('/ofertas/:id', OfertasController.listarOfertasPorId);
