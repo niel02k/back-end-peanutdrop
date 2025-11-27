@@ -113,16 +113,16 @@ INSERT INTO AGR_CERTIFICACOES (agri_id, cert_id, agr_local, agr_data, agr_arquiv
 
 -- Oitavo: Inserir DEMANDAS (depende de EMPRESAS e AMENDOINS)
 INSERT INTO DEMANDAS (emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, demanda_data_entrega, demanda_outras_informacoes, demanda_data_publicacao, demanda_imagem, demanda_ativa) VALUES
-(1, 1, 50, 200.00, '2025-11-01', 'Sacas de amendoim cru — preço médio de R$200 por saca', '2025-10-17', 'Demanda1.jpg', 1),
-(2, 2, 40, 210.00, '2025-11-05', 'Saca de amendoim selecionado em casca', '2025-10-17', 'Demanda2.jpg', 1),
-(3, 3, 30, 220.00, '2025-11-10', 'Amendoim em casca seca — pronta entrega', '2025-10-17', 'Demanda3.jpg', 1),
-(4, 4, 60, 230.00, '2025-11-15', 'Amendoim tipo exportação', '2025-10-18', 'Demanda4.jpg', 1),
-(5, 5, 45, 240.00, '2025-11-20', 'Para produção de pasta', '2025-10-19', 'Demanda5.jpg', 1),
-(6, 6, 55, 250.00, '2025-11-25', 'Grãos selecionados', '2025-10-20', 'Demanda6.jpg', 1),
-(7, 7, 65, 260.00, '2025-11-30', 'Amendoim orgânico', '2025-10-21', 'Demanda7.jpg', 1),
-(8, 8, 70, 270.00, '2025-12-05', 'Para confeitaria', '2025-10-22', 'Demanda8.jpg', 1),
-(9, 9, 75, 280.00, '2025-12-10', 'Premium qualidade', '2025-10-23', 'Demanda9.jpg', 1),
-(10, 10, 80, 290.00, '2025-12-15', 'Exportação Europa', '2025-10-24', 'Demanda10.jpg', 1);
+(1, 1, 50, 200.00, '2025-11-01', 'Sacas de amendoim cru — preço médio de R$200 por saca', '2025-10-17', 'Demandas1.jpg', 1),
+(2, 2, 40, 210.00, '2025-11-05', 'Saca de amendoim selecionado em casca', '2025-10-17', 'Demandas2.jpg', 1),
+(3, 3, 30, 220.00, '2025-11-10', 'Amendoim em casca seca — pronta entrega', '2025-10-17', 'Demandas3.jpg', 1),
+(4, 4, 60, 230.00, '2025-11-15', 'Amendoim tipo exportação', '2025-10-18', 'Demandas4.jpg', 1),
+(5, 5, 45, 240.00, '2025-11-20', 'Para produção de pasta', '2025-10-19', 'Demandas5.jpg', 1),
+(6, 6, 55, 250.00, '2025-11-25', 'Grãos selecionados', '2025-10-20', 'Demandas6.jpg', 1),
+(7, 7, 65, 260.00, '2025-11-30', 'Amendoim orgânico', '2025-10-21', 'Demandas7.jpg', 1),
+(8, 8, 70, 270.00, '2025-12-05', 'Para confeitaria', '2025-10-22', 'Demandas8.jpg', 1),
+(9, 9, 75, 280.00, '2025-12-10', 'Premium qualidade', '2025-10-23', 'Demandas9.jpg', 1),
+(10, 10, 80, 290.00, '2025-12-15', 'Exportação Europa', '2025-10-24', 'Demandas10.jpg', 1);
 
 -- Nono: Inserir OFERTAS (depende de AGRICULTORES e AMENDOINS)
 INSERT INTO OFERTAS (agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa, oferta_img) VALUES
