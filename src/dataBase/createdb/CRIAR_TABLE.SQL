@@ -173,3 +173,13 @@ CREATE TABLE NOTAS_FISCAIS (
     nota_fiscal_detalhes VARCHAR(255),
     FOREIGN KEY (contrato_id) REFERENCES CONTRATOS(contrato_id)
 );
+
+CREATE TABLE IF NOT EXISTS recuperacao_senha (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    usuario_id INT NOT NULL,
+    codigo VARCHAR(6) NOT NULL,
+    expiracao DATETIME NOT NULL,
+    used TINYINT DEFAULT 0,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES USUARIOS(usu_id) ON DELETE CASCADE
+);
