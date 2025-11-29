@@ -138,31 +138,36 @@ INSERT INTO OFERTAS (agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_d
 (10, 10, 1400, 6.40, '2025-03-25', 'Premium selection', '2025-03-21', 1, 'Ofertas10.jpg');
 
 -- Décimo: Inserir NEGOCIACOES (depende de OFERTAS e DEMANDAS)
-INSERT INTO NEGOCIACOES (oferta_id, demanda_id, negoc_status) VALUES
-(1, 1, 1),
-(2, 2, 1),
-(3, 3, 1),
-(4, 4, 2),
-(5, 5, 1),
-(6, 6, 3),
-(7, 7, 1),
-(8, 8, 2),
-(9, 9, 1),
-(10, 10, 3);
+INSERT INTO NEGOCIACOES (oferta_id, demanda_id, agri_id, emp_id, negoc_status, negoc_data_criacao) VALUES
+(1, NULL, 1, 3, 1, '2025-04-01 10:30:00'),      -- negoc_id = 1
+(2, NULL, 2, 4, 1, '2025-04-02 14:15:00'),      -- negoc_id = 2  
+(3, NULL, 3, 5, 2, '2025-04-03 09:45:00'),      -- negoc_id = 3
+(4, NULL, 4, 6, 3, '2025-04-04 16:20:00'),      -- negoc_id = 4
+(NULL, 1, 5, 7, 1, '2025-04-05 11:10:00'),      -- negoc_id = 5
+(NULL, 2, 6, 8, 2, '2025-04-06 13:25:00'),      -- negoc_id = 6
+(NULL, 3, 7, 9, 3, '2025-04-07 15:40:00'),      -- negoc_id = 7
+(NULL, 4, 8, 10, 4, '2025-04-08 08:55:00'),     -- negoc_id = 8
+(5, 5, 9, 3, 5, '2025-04-09 12:30:00'),         -- negoc_id = 9
+(6, 6, 10, 4, 6, '2025-04-10 17:05:00');        -- negoc_id = 10
 
 -- Décimo primeiro: Inserir PROPOSTA (depende de NEGOCIACOES e EMPRESAS)
-INSERT INTO PROPOSTA (negoc_id, emp_id, prop_preco, prop_quantidade, prop_data_envio, prop_status) VALUES
-(1, 1, 5.30, 1000, '2025-03-18', 1),
-(2, 2, 5.90, 1500, '2025-03-18', 1),
-(3, 3, 5.60, 800, '2025-03-19', 1),
-(4, 4, 5.80, 1000, '2025-03-20', 2),
-(5, 5, 5.95, 1200, '2025-03-21', 1),
-(6, 6, 6.05, 900, '2025-03-22', 3),
-(7, 7, 6.15, 1100, '2025-03-23', 1),
-(8, 8, 6.25, 950, '2025-03-24', 2),
-(9, 9, 6.35, 1300, '2025-03-25', 1),
-(10, 10, 6.45, 1400, '2025-03-26', 3);
+INSERT INTO PROPOSTAS (negoc_id, emp_id, agri_id, prop_preco, prop_quantidade, prop_data_envio, prop_status, prop_observacoes) VALUES
+-- Propostas de EMPRESAS para negociações iniciadas por ofertas
+(1, 3, NULL, 5.15, 1000, '2025-04-01 11:00:00', 1, 'Interessados na oferta, podemos fechar hoje?'),
+(2, 4, NULL, 5.70, 600, '2025-04-02 15:00:00', 1, 'Precisamos de entrega urgente'),
+(3, 5, NULL, 5.40, 800, '2025-04-03 10:30:00', 2, 'Proposta aceita pelo agricultor'),
 
+-- Propostas de AGRICULTORES (contrapropostas)
+(1, NULL, 1, 5.25, 1000, '2025-04-01 16:00:00', 4, 'Aceito mas com ajuste no preço'),
+(4, NULL, 4, 5.65, 1000, '2025-04-04 17:30:00', 1, 'Produção orgânica certificada'),
+
+-- Propostas de EMPRESAS para negociações iniciadas por demandas
+(5, 7, NULL, 5.85, 1200, '2025-04-05 12:00:00', 1, 'Atendendo sua demanda'),
+(6, 8, NULL, 5.95, 900, '2025-04-06 14:00:00', 2, 'Proposta aprovada'),
+
+-- Propostas finais fechadas
+(9, 3, NULL, 5.90, 1200, '2025-04-09 13:00:00', 5, 'Contrato gerado'),
+(10, 4, NULL, 6.05, 900, '2025-04-10 18:00:00', 5, 'Negociação concluída');
 -- Décimo segundo: Inserir MENSAGENS (depende de NEGOCIACOES e USUARIOS)
 INSERT INTO MENSAGENS (id_usuario_remetente, negoc_id, mens_conteudo, mens_data_envio, mens_visualizada) VALUES
 (2, 1, 'Estamos interessados na oferta, podemos negociar o preço?', '2025-03-17', 0),

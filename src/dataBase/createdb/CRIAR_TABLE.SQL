@@ -117,23 +117,34 @@ CREATE TABLE OFERTAS (
 
 CREATE TABLE NEGOCIACOES (
     negoc_id INT PRIMARY KEY AUTO_INCREMENT,
-    oferta_id INT NOT NULL,
-    demanda_id INT NOT NULL,
-    negoc_status TINYINT,
+    oferta_id INT NULL,
+    demanda_id INT NULL,
+    agri_id INT NOT NULL,
+    emp_id INT NOT NULL,
+    negoc_status TINYINT DEFAULT 1,
+    negoc_data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (oferta_id) REFERENCES OFERTAS(oferta_id),
-    FOREIGN KEY (demanda_id) REFERENCES DEMANDAS(demanda_id)
+    FOREIGN KEY (demanda_id) REFERENCES DEMANDAS(demanda_id),
+    FOREIGN KEY (agri_id) REFERENCES AGRICULTORES(agri_id),
+    FOREIGN KEY (emp_id) REFERENCES EMPRESAS(emp_id)
 );
 
-CREATE TABLE PROPOSTA (
+CREATE TABLE PROPOSTAS (
     prop_id INT PRIMARY KEY AUTO_INCREMENT,
     negoc_id INT NOT NULL,
-    emp_id INT NOT NULL,
+    emp_id INT NULL,               -- Pode ser NULL (se agricultor enviou)
+    agri_id INT NULL,              -- Pode ser NULL (se empresa enviou)  
     prop_preco DECIMAL(7,2),
     prop_quantidade INT,
-    prop_data_envio DATE,
+    prop_data_envio DATETIME DEFAULT CURRENT_TIMESTAMP,
     prop_status TINYINT,
+    prop_observacoes TEXT,
     FOREIGN KEY (negoc_id) REFERENCES NEGOCIACOES(negoc_id),
-    FOREIGN KEY (emp_id) REFERENCES EMPRESAS(emp_id)
+    FOREIGN KEY (emp_id) REFERENCES EMPRESAS(emp_id),
+    FOREIGN KEY (agri_id) REFERENCES AGRICULTORES(agri_id),
+    -- Garante que só um enviou a proposta
+    CHECK ((emp_id IS NOT NULL AND agri_id IS NULL) OR 
+           (emp_id IS NULL AND agri_id IS NOT NULL))
 );
 
 CREATE TABLE MENSAGENS (

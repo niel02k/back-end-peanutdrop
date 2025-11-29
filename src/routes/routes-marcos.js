@@ -38,11 +38,15 @@ router.post('/auth/redefinir-senha', UsuariosController.redefinirSenha);
 
 
 // ROTAS DE NEGOCIAÇÕES
-router.get('/Negociacoes', NegociacoesController.listarNegociacoes);
-router.post('/Negociacoes', NegociacoesController.cadastrarNegociacoes);
-router.patch('/Negociacoes/:id', NegociacoesController.editarNegociacoes);
-router.delete('/Negociacoes/:id', NegociacoesController.apagarNegociacoes);
-router.get('/Negociacoes/filtro', NegociacoesController.listarNegociacoesFiltro);
+// Rotas para Negociações
+router.get('/negociacoes', NegociacoesController.listarNegociacoes);
+router.post('/negociacoes/iniciar-oferta', NegociacoesController.iniciarNegociacaoOferta);
+router.post('/negociacoes/iniciar-demanda', NegociacoesController.iniciarNegociacaoDemanda);
+router.patch('/negociacoes/:id', NegociacoesController.editarNegociacoes);
+router.delete('/negociacoes/:id', NegociacoesController.apagarNegociacoes);
+router.get('/negociacoes/filtro', NegociacoesController.listarNegociacoesFiltro);
+router.get('/negociacoes/:id', NegociacoesController.buscarNegociacaoPorId);
+router.get('/negociacoes/usuario/:usuario_id/:tipo_usuario', NegociacoesController.listarNegociacoesPorUsuario);
 
 // ROTAS DE MENSAGENS
 router.get('/Mensagem', MensagemsController.listarMensagem);
@@ -129,10 +133,10 @@ router.delete('/Amendoins/:id', AmendoinsController.apagarAmendoins);
 router.get('/Amendoins/filtro', AmendoinsController.listarAmendoinsFiltro);
 
 // ROTAS DE OFERTAS
-router.get('/Ofertas', OfertasController.listarOfertas);
-router.post('/Ofertas', uploadOfertas.single('oferta_img'), OfertasController.cadastrarOfertas);
-router.patch('/Ofertas/:id', uploadOfertas.single('imagem'), OfertasController.editarOfertas);
-router.delete('/Ofertas/:id', OfertasController.apagarOfertas);
+router.get('/ofertas', OfertasController.listarOfertas);
+router.post('/ofertas', uploadOfertas.single('oferta_img'), OfertasController.cadastrarOfertas);
+router.patch('/ofertas/:id', uploadOfertas.single('imagem'), OfertasController.editarOfertas);
+router.delete('/ofertas/:id', OfertasController.apagarOfertas);
 router.get('/ofertas/:id', OfertasController.listarOfertasPorId);
 
 module.exports = router;
