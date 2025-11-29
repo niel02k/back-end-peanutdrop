@@ -31,6 +31,11 @@ router.post('/usuarios', uploadUsuarios.single('imagem'), UsuariosController.cad
 router.delete('/usuarios/:id', UsuariosController.apagarUsuarios);
 router.post('/usuarios/login', UsuariosController.login);
 router.put('/usuarios/:id', uploadUsuarios.single('imagem'), UsuariosController.editarUsuarios);
+// ROTAS DE RECUPERAÇÃO DE SENHA
+router.post('/auth/solicitar-recuperacao', UsuariosController.solicitarRecuperacaoSenha);
+router.post('/auth/verificar-codigo', UsuariosController.verificarCodigo);
+router.post('/auth/redefinir-senha', UsuariosController.redefinirSenha);
+
 
 // ROTAS DE NEGOCIAÇÕES
 router.get('/Negociacoes', NegociacoesController.listarNegociacoes);
