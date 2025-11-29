@@ -1,64 +1,6 @@
 const db = require("../dataBase/connection");
 const crypto = require('../utils/crypto');
 const {gerarUrl} = require('../utils/gerarUrl');
-const nodemailer = require('nodemailer');
-
-// ==================================================
-// FUNÇÕES AUXILIARES (FORA DO module.exports)
-// ==================================================
-
-// Função para enviar email de recuperação
-async function enviarEmailRecuperacao(emailDestino, nomeUsuario, codigo) {
-  try {
-    const transporter = nodemailer.createTransport({
-      host: process.env.MAIL_HOST,
-      port: process.env.MAIL_PORT,
-      secure: false,
-      auth: {
-        user: process.env.MAIL_USER,
-        pass: process.env.MAIL_PASS
-      }
-    });
-    
-    const mailOptions = {
-      from: `PeanutDrop Sistema <${process.env.MAIL_USER}>`,
-      to: emailDestino,
-      subject: 'Código de Recuperação de Senha - PeanutDrop',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #2E7D32, #4CAF50); padding: 20px; text-align: center;">
-            <h1 style="color: white; margin: 0;">PeanutDrop</h1>
-          </div>
-          <div style="padding: 20px; background-color: #f9f9f9;">
-            <h2 style="color: #2E7D32;">Recuperação de Senha</h2>
-            <p>Olá <strong>${nomeUsuario}</strong>,</p>
-            <p>Recebemos uma solicitação para redefinir sua senha. Use o código abaixo para continuar:</p>
-            <div style="background-color: #2E7D32; color: white; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
-              ${codigo}
-            </div>
-            <p>Este código expira em <strong>15 minutos</strong>.</p>
-            <p>Se você não solicitou esta recuperação, ignore este email.</p>
-          </div>
-          <div style="background-color: #e8f5e8; padding: 15px; text-align: center; color: #666; font-size: 12px;">
-            <p>PeanutDrop - Plataforma de Conectividade Agrícola</p>
-            <p>Email automático, por favor não responda.</p>
-          </div>
-        </div>
-      `
-    };
-
-    await transporter.sendMail(mailOptions);
-    console.log(`✅ Email de recuperação enviado para: ${emailDestino}`);
-    return true;
-  } catch (error) {
-    console.error('❌ Erro ao enviar email:', error);
-    return false;
-  }
-}
-
-// ==================================================
-// EXPORTAÇÕES (DENTRO DO module.exports)
-// ==================================================
 
 module.exports = {
   async listarUsuarios(request, response) {
@@ -604,217 +546,76 @@ module.exports = {
     }
   },
 
-  // ==================================================
-  // FUNÇÕES DE RECUPERAÇÃO DE SENHA
-  // ==================================================
-
-  async solicitarRecuperacaoSenha(req, res) {
-    console.log('📨 REQUISIÇÃO RECEBIDA - Email:', req.body.email);
-    
-    const connection = await db.getConnection();
+  async buscarUsuarioPorId(request, response) {
     try {
-      await connection.beginTransaction();
-      const { email } = req.body;
+      const { id } = request.params;
 
-      console.log('🔍 Buscando usuário com email:', email);
+      const sql = `
+        SELECT u.*, 
+               a.agri_localizacao_propriedade, a.agri_tipos_amendoim_cultivados,
+               a.agri_certificacoes, a.agri_outras_informacoes,
+               e.emp_razao_social, e.emp_nome_fantasia, e.emp_tipo_atividade
+        FROM USUARIOS u
+        LEFT JOIN AGRICULTORES a ON u.agri_id = a.agri_id
+        LEFT JOIN EMPRESAS e ON u.emp_id = e.emp_id
+        WHERE u.usu_id = ?
+      `;
 
-      if (!email) {
-        return res.status(400).json({
-          sucesso: false,
-          mensagem: 'Email é obrigatório'
-        });
-      }
-
-      // Verificar se o usuário existe (PUXA DO BANCO)
-      const [usuarios] = await connection.execute(
-        'SELECT usu_id, usu_nome, usu_email FROM USUARIOS WHERE usu_email = ?',
-        [email]
-      );
-
-      console.log('👤 Resultado da busca:', usuarios);
-
-      if (usuarios.length === 0) {
-        await connection.rollback();
-        return res.status(404).json({
-          sucesso: false,
-          mensagem: 'Usuário não encontrado'
-        });
-      }
-
-      const usuario = usuarios[0];
-      const codigoVerificacao = Math.floor(100000 + Math.random() * 900000).toString();
-      const expiracao = new Date(Date.now() + 15 * 60 * 1000); // 15 minutos
-
-      console.log('🔑 Código gerado:', codigoVerificacao);
-      console.log('⏰ Expira em:', expiracao);
-
-      // Invalidar códigos anteriores
-      await connection.execute(
-        'UPDATE recuperacao_senha SET used = 1 WHERE usuario_id = ? AND used = 0',
-        [usuario.usu_id]
-      );
-
-      // Salvar novo código no banco
-      console.log('💾 Salvando código no banco...');
-      await connection.execute(
-        'INSERT INTO recuperacao_senha (usuario_id, codigo, expiracao) VALUES (?, ?, ?)',
-        [usuario.usu_id, codigoVerificacao, expiracao]
-      );
-
-      console.log('📧 Preparando para enviar email...');
+      const [rows] = await db.query(sql, [id]);
       
-      // 🔧 CORREÇÃO: Chama a função diretamente (sem "this")
-      const emailEnviado = await enviarEmailRecuperacao(
-        usuario.usu_email,
-        usuario.usu_nome,
-        codigoVerificacao
-      );
-
-      if (!emailEnviado) {
-        console.log('❌ Falha no envio do email');
-        await connection.rollback();
-        return res.status(500).json({
+      if (rows.length === 0) {
+        return response.status(404).json({
           sucesso: false,
-          mensagem: 'Erro ao enviar email de recuperação'
+          mensagem: "Usuário não encontrado",
+          dados: null
         });
       }
 
-      await connection.commit();
-      console.log('✅ Processo concluído com sucesso!');
+      const usuario = rows[0];
+      
+      let nomeExibicao = usuario.usu_nome;
+      if (usuario.usu_tipo_usuario === '1' && usuario.agri_localizacao_propriedade) {
+        nomeExibicao = usuario.agri_localizacao_propriedade;
+      } else if (usuario.usu_tipo_usuario === '2' && usuario.emp_nome_fantasia) {
+        nomeExibicao = usuario.emp_nome_fantasia;
+      }
+      
+      const dadosFormatados = {
+        id: usuario.usu_id,
+        tipo: usuario.usu_tipo_usuario,
+        nome: usuario.usu_nome,
+        nomeExibicao: nomeExibicao,
+        email: usuario.usu_email,
+        documento: usuario.usu_documento,
+        telefone: usuario.usu_telefone,
+        dataCadastro: usuario.usu_data_cadastro,
+        imagem: usuario.usu_imagem ,
+        cep: usuario.usu_cep,
+        cidade: usuario.usu_cidade,
+        estado: usuario.usu_estado,
+        endereco: usuario.usu_endereco,
+        localizacaoPropriedade: usuario.agri_localizacao_propriedade,
+        tiposAmendoim: usuario.agri_tipos_amendoim_cultivados,
+        certificacoes: usuario.agri_certificacoes,
+        outrasInformacoes: usuario.agri_outras_informacoes,
+        razaoSocial: usuario.emp_razao_social,
+        nomeFantasia: usuario.emp_nome_fantasia,
+        tipoAtividade: usuario.emp_tipo_atividade
+      };
 
-      res.json({
+      return response.status(200).json({
         sucesso: true,
-        mensagem: 'Código de verificação enviado para seu email'
+        mensagem: "Usuário encontrado",
+        dados: dadosFormatados
       });
 
     } catch (error) {
-      await connection.rollback();
-      console.log('💥 ERRO 500 - Detalhes completos:');
-      console.log('📌 Mensagem:', error.message);
-      console.log('🔍 Stack:', error.stack);
-      
-      res.status(500).json({
+      console.error('Erro ao buscar usuário:', error);
+      return response.status(500).json({
         sucesso: false,
-        mensagem: 'Erro interno do servidor: ' + error.message
+        mensagem: "Erro ao buscar usuário",
+        dados: error.message
       });
-    } finally {
-      connection.release();
-    }
-  },
-
-  async verificarCodigo(req, res) {
-    try {
-      const { email, codigo } = req.body;
-
-      if (!email || !codigo) {
-        return res.status(400).json({
-          sucesso: false,
-          mensagem: 'Email e código são obrigatórios'
-        });
-      }
-
-      // Buscar código válido
-      const [codigos] = await db.execute(
-        `SELECT r.*, u.usu_id 
-         FROM recuperacao_senha r 
-         INNER JOIN USUARIOS u ON r.usuario_id = u.usu_id 
-         WHERE u.usu_email = ? AND r.codigo = ? AND r.expiracao > NOW() AND r.used = 0`,
-        [email, codigo]
-      );
-
-      if (codigos.length === 0) {
-        return res.status(400).json({
-          sucesso: false,
-          mensagem: 'Código inválido ou expirado'
-        });
-      }
-
-      res.json({
-        sucesso: true,
-        mensagem: 'Código válido'
-      });
-
-    } catch (error) {
-      console.error('❌ Erro ao verificar código:', error);
-      res.status(500).json({
-        sucesso: false,
-        mensagem: 'Erro interno do servidor'
-      });
-    }
-  },
-
-  async redefinirSenha(req, res) {
-    const connection = await db.getConnection();
-    
-    try {
-      await connection.beginTransaction();
-
-      const { email, codigo, novaSenha } = req.body;
-
-      if (!email || !codigo || !novaSenha) {
-        return res.status(400).json({
-          sucesso: false,
-          mensagem: 'Todos os campos são obrigatórios'
-        });
-      }
-
-      if (novaSenha.length < 6) {
-        return res.status(400).json({
-          sucesso: false,
-          mensagem: 'A senha deve ter pelo menos 6 caracteres'
-        });
-      }
-
-      // Verificar código válido
-      const [codigos] = await connection.execute(
-        `SELECT r.*, u.usu_id 
-         FROM recuperacao_senha r 
-         INNER JOIN USUARIOS u ON r.usuario_id = u.usu_id 
-         WHERE u.usu_email = ? AND r.codigo = ? AND r.expiracao > NOW() AND r.used = 0`,
-        [email, codigo]
-      );
-
-      if (codigos.length === 0) {
-        await connection.rollback();
-        return res.status(400).json({
-          sucesso: false,
-          mensagem: 'Código inválido ou expirado'
-        });
-      }
-
-      const recuperacao = codigos[0];
-      
-      // Hash da nova senha
-      const senhaCriptografada = await crypto.hashPassword(novaSenha);
-
-      // Atualizar senha do usuário
-      await connection.execute(
-        'UPDATE USUARIOS SET usu_senha = ? WHERE usu_id = ?',
-        [senhaCriptografada, recuperacao.usuario_id]
-      );
-
-      // Marcar código como usado
-      await connection.execute(
-        'UPDATE recuperacao_senha SET used = 1 WHERE id = ?',
-        [recuperacao.id]
-      );
-
-      await connection.commit();
-
-      res.json({
-        sucesso: true,
-        mensagem: 'Senha redefinida com sucesso'
-      });
-
-    } catch (error) {
-      await connection.rollback();
-      console.error('❌ Erro ao redefinir senha:', error);
-      res.status(500).json({
-        sucesso: false,
-        mensagem: 'Erro interno do servidor'
-      });
-    } finally {
-      connection.release();
     }
   }
 };
