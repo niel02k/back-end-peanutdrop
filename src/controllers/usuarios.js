@@ -56,9 +56,6 @@ async function enviarEmailRecuperacao(emailDestino, nomeUsuario, codigo) {
   }
 }
 
-// ==================================================
-// EXPORTAÇÕES (DENTRO DO module.exports)
-// ==================================================
 
 module.exports = {
   async listarUsuarios(request, response) {
