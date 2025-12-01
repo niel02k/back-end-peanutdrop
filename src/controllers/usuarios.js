@@ -87,131 +87,147 @@ module.exports = {
     }
   },
 
-  async cadastrarUsuarios(request, response) {
-    const connection = await db.getConnection();
-    
-    try {
-      await connection.beginTransaction();
+async cadastrarUsuarios(request, response) {
+  const connection = await db.getConnection();
+  
+  try {
+    await connection.beginTransaction();
 
-      const {
-        usu_tipo_usuario,
-        usu_nome,
-        usu_documento,
-        usu_email,
-        usu_senha,
-        usu_endereco,
-        usu_telefone,
-        usu_data_cadastro,
-        agri_localizacao_propriedade,
-        agri_tipos_amendoim_cultivados,
-        agri_certificacoes,
-        emp_razao_social,
-        emp_nome_fantasia,
-        emp_tipo_atividade
-      } = request.body;
+    const {
+      usu_tipo_usuario,  // AGORA: 1=Admin, 2=Agricultor, 3=Empresa
+      usu_nome,
+      usu_documento,
+      usu_email,
+      usu_senha,
+      usu_endereco,
+      usu_telefone,
+      usu_data_cadastro,
+      agri_localizacao_propriedade,
+      agri_tipos_amendoim_cultivados,
+      agri_certificacoes,
+      emp_razao_social,
+      emp_nome_fantasia,
+      emp_tipo_atividade
+    } = request.body;
 
-      let imagemFinal = null;
-      let urlImagem = null;
+    let imagemFinal = null;
+    let urlImagem = null;
 
-      if (request.file) {
-        imagemFinal = request.file.filename;
-        urlImagem = gerarUrl(imagemFinal, 'usuarios');
-      } else {
-        imagemFinal = null;
-        urlImagem = gerarUrl(null, 'usuarios', 'padrao.png');
-      }
-
-      const senhaCriptografada = await crypto.hashPassword(usu_senha);
-
-      let specificId;
-      let specificTable;
-
-      if (usu_tipo_usuario === '1') {
-        const [agricultorResult] = await connection.execute(
-          `INSERT INTO AGRICULTORES 
-           (agri_nome, agri_localizacao_propriedade, agri_tipos_amendoim_cultivados, agri_certificacoes, agri_telefone, agri_email) 
-           VALUES (?, ?, ?, ?, ?, ?)`,
-          [
-            usu_nome,
-            agri_localizacao_propriedade || '',
-            agri_tipos_amendoim_cultivados || '',
-            agri_certificacoes || '',
-            usu_telefone,
-            usu_email
-          ]
-        );
-        specificId = agricultorResult.insertId;
-        specificTable = 'AGRICULTORES';
-      } else {
-        const [empresaResult] = await connection.execute(
-          `INSERT INTO EMPRESAS 
-           (emp_razao_social, emp_nome_fantasia, emp_tipo_atividade, emp_telefone, emp_email) 
-           VALUES (?, ?, ?, ?, ?)`,
-          [
-            emp_razao_social || '',
-            emp_nome_fantasia || '',
-            emp_tipo_atividade || '',
-            usu_telefone,
-            usu_email
-          ]
-        );
-        specificId = empresaResult.insertId;
-        specificTable = 'EMPRESAS';
-      }
-
-      const sqlUsuarios = `
-        INSERT INTO USUARIOS 
-        (usu_tipo_usuario, usu_nome, usu_documento, usu_email, usu_senha, 
-         usu_endereco, usu_telefone, usu_data_cadastro, usu_imagem,
-         ${usu_tipo_usuario === '1' ? 'agri_id' : 'emp_id'}) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `;
-      
-      const valuesUsuarios = [
-        usu_tipo_usuario,
-        usu_nome,
-        usu_documento,
-        usu_email,
-        senhaCriptografada,
-        usu_endereco,
-        usu_telefone,
-        usu_data_cadastro,
-        imagemFinal,
-        specificId
-      ];
-
-      const [usuarioResult] = await connection.execute(sqlUsuarios, valuesUsuarios);
-      await connection.commit();
-
-     const dados = {
-        id: usuarioResult.insertId,
-        nome: usu_nome,
-        email: usu_email,
-        tipo: usu_tipo_usuario,
-        agri_id: usu_tipo_usuario === '1' ? specificId : null,
-        emp_id: usu_tipo_usuario === '2' ? specificId : null,
-        imagem: urlImagem
-};
-
-      return response.status(200).json({
-        sucesso: true,
-        mensagem: "Cadastro realizado com sucesso!",
-        dados,
-      });
-
-    } catch (error) {
-      await connection.rollback();
-      console.error('❌ Erro no cadastro:', error);
-      
-      return response.status(500).json({
-        sucesso: false,
-        mensagem: error.sqlMessage || "Erro no cadastro.",
-        dados: error.message,
-      });
-    } finally {
-      connection.release();
+    if (request.file) {
+      imagemFinal = request.file.filename;
+      urlImagem = gerarUrl(imagemFinal, 'usuarios');
+    } else {
+      imagemFinal = null;
+      urlImagem = gerarUrl(null, 'usuarios', 'padrao.png');
     }
-  },
+
+    const senhaCriptografada = await crypto.hashPassword(usu_senha);
+
+    let specificId = null;
+    let colunaExtra = '';
+    let valorExtra = null;
+
+    // 🔴 CORREÇÃO DEFINITIVA - CONSISTENTE COM SUAS OUTRAS FUNÇÕES
+    if (usu_tipo_usuario === '2') {  // AGRICULTOR (como você já tem)
+      const [agricultorResult] = await connection.execute(
+        `INSERT INTO AGRICULTORES 
+         (agri_nome, agri_localizacao_propriedade, agri_tipos_amendoim_cultivados, 
+          agri_certificacoes, agri_telefone, agri_email) 
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+          usu_nome,
+          agri_localizacao_propriedade || '',
+          agri_tipos_amendoim_cultivados || '',
+          agri_certificacoes || '',
+          usu_telefone,
+          usu_email
+        ]
+      );
+      specificId = agricultorResult.insertId;
+      colunaExtra = 'agri_id';
+      valorExtra = specificId;
+    } 
+    else if (usu_tipo_usuario === '3') {  // EMPRESA
+      const [empresaResult] = await connection.execute(
+        `INSERT INTO EMPRESAS 
+         (emp_razao_social, emp_nome_fantasia, emp_tipo_atividade, 
+          emp_telefone, emp_email) 
+         VALUES (?, ?, ?, ?, ?)`,
+        [
+          emp_razao_social || '',
+          emp_nome_fantasia || '',
+          emp_tipo_atividade || '',
+          usu_telefone,
+          usu_email
+        ]
+      );
+      specificId = empresaResult.insertId;
+      colunaExtra = 'emp_id';
+      valorExtra = specificId;
+    }
+    // Tipo '1' (Admin) não cria registro em tabela específica
+
+    // 🔴 CORREÇÃO CRÍTICA NO SQL
+    const sqlUsuarios = `
+      INSERT INTO USUARIOS 
+      (usu_tipo_usuario, usu_nome, usu_documento, usu_email, usu_senha, 
+       usu_endereco, usu_telefone, usu_data_cadastro, usu_imagem
+       ${colunaExtra ? ', ' + colunaExtra : ''}) 
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?
+              ${valorExtra ? ', ?' : ''})
+    `;
+    
+    const valuesUsuarios = [
+      usu_tipo_usuario,
+      usu_nome,
+      usu_documento,
+      usu_email,
+      senhaCriptografada,
+      usu_endereco,
+      usu_telefone,
+      usu_data_cadastro,
+      imagemFinal
+    ];
+
+    // Adicionar o valor extra se existir
+    if (valorExtra) {
+      valuesUsuarios.push(valorExtra);
+    }
+
+    const [usuarioResult] = await connection.execute(sqlUsuarios, valuesUsuarios);
+    await connection.commit();
+
+    // 🔴 CORREÇÃO NO RETORNO
+    const dados = {
+      id: usuarioResult.insertId,
+      nome: usu_nome,
+      email: usu_email,
+      tipo: usu_tipo_usuario,
+      agri_id: usu_tipo_usuario === '2' ? specificId : null,
+      emp_id: usu_tipo_usuario === '3' ? specificId : null,
+      imagem: urlImagem
+    };
+
+    return response.status(200).json({
+      sucesso: true,
+      mensagem: "Cadastro realizado com sucesso!",
+      dados,
+    });
+
+  } catch (error) {
+    await connection.rollback();
+    console.error('❌ Erro no cadastro:', error);
+    
+    return response.status(500).json({
+      sucesso: false,
+      mensagem: error.sqlMessage || "Erro no cadastro.",
+      dados: error.message,
+    });
+  } 
+  finally {
+    connection.release();
+  }
+},
 
   async editarUsuarios(request, response) {
     const connection = await db.getConnection();
@@ -253,7 +269,7 @@ module.exports = {
       }
 
       const usuario = usuarioAtual[0];
-      const isAgricultor = usuario.usu_tipo_usuario === '1';
+      const isAgricultor = usuario.usu_tipo_usuario === '2';
       const specificId = isAgricultor ? usuario.agri_id : usuario.emp_id;
 
       console.log('👤 Tipo de usuário:', isAgricultor ? 'Agricultor' : 'Empresa');
@@ -491,9 +507,9 @@ module.exports = {
       const usuario = rows[0];
       
       let nomeExibicao = usuario.usu_nome;
-      if (usuario.usu_tipo_usuario === '1' && usuario.agri_localizacao_propriedade) {
+      if (usuario.usu_tipo_usuario === '2' && usuario.agri_localizacao_propriedade) {
         nomeExibicao = usuario.agri_localizacao_propriedade;
-      } else if (usuario.usu_tipo_usuario === '2' && usuario.emp_nome_fantasia) {
+      } else if (usuario.usu_tipo_usuario === '3' && usuario.emp_nome_fantasia) {
         nomeExibicao = usuario.emp_nome_fantasia;
       }
       
