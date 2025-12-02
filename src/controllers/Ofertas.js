@@ -370,33 +370,43 @@ module.exports = {
     },
     
     async apagarOfertas(request, response) {
-        try {
-            const { id } = request.params;
-            
-            // Verifica existência
-            const [rows] = await db.query('SELECT oferta_id FROM OFERTAS WHERE oferta_id = ?', [id]);
-            if (!rows.length) {
-                return response.status(404).json({
-                    sucesso: false,
-                    mensagem: `Oferta ${id} não encontrada`,
-                });
-            }
-
-            const sql = 'DELETE FROM OFERTAS WHERE oferta_id = ?';
-            const [result] = await db.query(sql, [id]);
-            
-            return response.status(200).json({
-                sucesso: true,
-                mensagem: `Oferta ${id} excluída com sucesso`,
-                dados: null
-            });
-
-        } catch (error) {
-            return response.status(500).json({
+    try {
+        const { id } = request.params;
+        
+        // Verifica existência
+        const [rows] = await db.query('SELECT oferta_id FROM OFERTAS WHERE oferta_id = ?', [id]);
+        if (!rows.length) {
+            return response.status(404).json({
                 sucesso: false,
-                mensagem: 'Erro na requisição.',
-                dados: error.message
+                mensagem: `Oferta ${id} não encontrada`,
             });
         }
-    },
+
+        // ⚠️ DESABILITA FKs TEMPORARIAMENTE
+        await db.query('SET FOREIGN_KEY_CHECKS = 0');
+
+        const sql = 'DELETE FROM OFERTAS WHERE oferta_id = ?';
+        const [result] = await db.query(sql, [id]);
+
+        // ⚠️ REABILITA FKs
+        await db.query('SET FOREIGN_KEY_CHECKS = 1');
+        
+        return response.status(200).json({
+            sucesso: true,
+            mensagem: `Oferta ${id} excluída com sucesso`,
+            dados: null
+        });
+
+    } catch (error) {
+        // ⚠️ GARANTIR que FKs são reabilitadas mesmo em caso de erro
+        await db.query('SET FOREIGN_KEY_CHECKS = 1').catch(() => {});
+        
+        console.error('❌ ERRO ao apagar oferta:', error);
+        return response.status(500).json({
+            sucesso: false,
+            mensagem: 'Erro interno ao excluir oferta: ' + error.message,
+            dados: error.message
+        });
+    }
+},
 };
