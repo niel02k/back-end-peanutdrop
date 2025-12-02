@@ -25,25 +25,81 @@ async function enviarEmailRecuperacao(emailDestino, nomeUsuario, codigo) {
       to: emailDestino,
       subject: 'Código de Recuperação de Senha - PeanutDrop',
       html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <div style="background: linear-gradient(135deg, #2E7D32, #4CAF50); padding: 20px; text-align: center;">
-            <h1 style="color: white; margin: 0;">PeanutDrop</h1>
-          </div>
-          <div style="padding: 20px; background-color: #f9f9f9;">
-            <h2 style="color: #2E7D32;">Recuperação de Senha</h2>
-            <p>Olá <strong>${nomeUsuario}</strong>,</p>
-            <p>Recebemos uma solicitação para redefinir sua senha. Use o código abaixo para continuar:</p>
-            <div style="background-color: #2E7D32; color: white; padding: 15px; text-align: center; font-size: 24px; font-weight: bold; letter-spacing: 5px; margin: 20px 0;">
-              ${codigo}
-            </div>
-            <p>Este código expira em <strong>15 minutos</strong>.</p>
-            <p>Se você não solicitou esta recuperação, ignore este email.</p>
-          </div>
-          <div style="background-color: #e8f5e8; padding: 15px; text-align: center; color: #666; font-size: 12px;">
-            <p>PeanutDrop - Plataforma de Conectividade Agrícola</p>
-            <p>Email automático, por favor não responda.</p>
-          </div>
-        </div>
+        <div style="
+  font-family: Arial, sans-serif;
+  max-width: 600px;
+  margin: 0 auto;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #A46434;
+  background-color: #e2dad2;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+">
+
+  <!-- TOPO -->
+  <div style="
+    background-color: #A87453;
+    padding: 22px;
+    text-align: center;
+  ">
+    <h1 style="color: #FFF; margin: 0; font-size: 26px;">
+      PeanutDrop
+    </h1>
+  </div>
+
+  <!-- CONTEÚDO -->
+  <div style="padding: 25px;">
+    <h2 style="color: #5c3b28; margin-top: 0;">
+      Recuperação de Senha
+    </h2>
+
+    <p style="color: #333; font-size: 15px;">
+      Olá <strong>${nomeUsuario}</strong>,
+    </p>
+
+    <p style="color: #333; font-size: 15px;">
+      Recebemos uma solicitação para redefinir sua senha. Utilize o código abaixo:
+    </p>
+
+    <div style="
+      background-color: #5c3b28;
+      color: white;
+      padding: 18px;
+      text-align: center;
+      font-size: 28px;
+      letter-spacing: 6px;
+      margin: 25px 0;
+      font-weight: bold;
+      border-radius: 10px;
+      border: 2px solid #A46434;
+    ">
+      ${codigo}
+    </div>
+
+    <p style="color: #333; font-size: 15px;">
+      Este código expira em <strong>15 minutos</strong>.
+    </p>
+
+    <p style="color: #666; font-size: 14px;">
+      Se você não solicitou esta recuperação, apenas ignore este email.
+    </p>
+  </div>
+
+  <!-- RODAPÉ -->
+  <div style="
+    background-color: #d8cfc7;
+    padding: 15px;
+    text-align: center;
+    color: #666;
+    font-size: 12px;
+    border-top: 1px solid #A46434;
+  ">
+    <p style="margin: 0;">PeanutDrop — Plataforma de Conectividade Agrícola</p>
+    <p style="margin: 6px 0 0;">Email automático — não responda.</p>
+  </div>
+
+</div>
+
       `
     };
 
