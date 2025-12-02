@@ -112,30 +112,35 @@ INSERT INTO AGR_CERTIFICACOES (agri_id, cert_id, agr_local, agr_data, agr_arquiv
 (10, 1, 'Chácara Vale Verde', '2024-07-15', 'certificado10.pdf', 1);
 
 -- Oitavo: Inserir DEMANDAS (depende de EMPRESAS e AMENDOINS)
-INSERT INTO DEMANDAS (emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, demanda_data_entrega, demanda_outras_informacoes, demanda_data_publicacao, demanda_imagem, demanda_ativa) VALUES
-(1, 1, 50, 200.00, '2025-11-01', 'Sacas de amendoim cru — preço médio de R$200 por saca', '2025-10-17', 'Demandas1.jpg', 1),
-(2, 2, 40, 210.00, '2025-11-05', 'Saca de amendoim selecionado em casca', '2025-10-17', 'Demandas2.jpg', 1),
-(3, 3, 30, 220.00, '2025-11-10', 'Amendoim em casca seca — pronta entrega', '2025-10-17', 'Demandas3.jpg', 1),
-(4, 4, 60, 230.00, '2025-11-15', 'Amendoim tipo exportação', '2025-10-18', 'Demandas4.jpg', 1),
-(5, 5, 45, 240.00, '2025-11-20', 'Para produção de pasta', '2025-10-19', 'Demandas5.jpg', 1),
-(6, 6, 55, 250.00, '2025-11-25', 'Grãos selecionados', '2025-10-20', 'Demandas6.jpg', 1),
-(7, 7, 65, 260.00, '2025-11-30', 'Amendoim orgânico', '2025-10-21', 'Demandas7.jpg', 1),
-(8, 8, 70, 270.00, '2025-12-05', 'Para confeitaria', '2025-10-22', 'Demandas8.jpg', 1),
-(9, 9, 75, 280.00, '2025-12-10', 'Premium qualidade', '2025-10-23', 'Demandas9.jpg', 1),
-(10, 10, 80, 290.00, '2025-12-15', 'Exportação Europa', '2025-10-24', 'Demandas10.jpg', 1);
+INSERT INTO DEMANDAS 
+(emp_id, amen_id, demanda_quantidade, demanda_preco_maximo, demanda_data_entrega, demanda_outras_informacoes, demanda_data_publicacao, demanda_imagem, demanda_ativa) 
+VALUES
+(1, 1, 50, 200, '2025-11-01', 'Sacas de amendoim cru — preço total por lote', '2025-10-17', 'Demandas1.jpg', 1),
+(2, 2, 40, 210, '2025-11-05', 'Saca de amendoim selecionado em casca — lote completo', '2025-10-17', 'Demandas2.jpg', 1),
+(3, 3, 30, 220, '2025-11-10', 'Amendoim em casca seca — lote fechado', '2025-10-17', 'Demandas3.jpg', 1),
+(4, 4, 60, 230, '2025-11-15', 'Amendoim tipo exportação — valor total', '2025-10-18', 'Demandas4.jpg', 1),
+(5, 5, 45, 240, '2025-11-20', 'Para produção de pasta — lote completo', '2025-10-19', 'Demandas5.jpg', 1),
+(6, 6, 55, 250, '2025-11-25', 'Grãos selecionados — preço total', '2025-10-20', 'Demandas6.jpg', 1),
+(7, 7, 65, 260, '2025-11-30', 'Amendoim orgânico — valor do lote', '2025-10-21', 'Demandas7.jpg', 1),
+(8, 8, 70, 270, '2025-12-05', 'Para confeitaria — lote fechado', '2025-10-22', 'Demandas8.jpg', 1),
+(9, 9, 75, 280, '2025-12-10', 'Premium qualidade — lote completo', '2025-10-23', 'Demandas9.jpg', 1),
+(10, 10, 80, 290, '2025-12-15', 'Exportação Europa — lote total', '2025-10-24', 'Demandas10.jpg', 1);
+
 
 -- Nono: Inserir OFERTAS (depende de AGRICULTORES e AMENDOINS)
-INSERT INTO OFERTAS (agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa, oferta_img) VALUES
-(1, 1, 1200, 5.20, '2025-01-15', 'Produção sem pesticidas', '2025-03-10', 1, 'Ofertas1.jpg'),
-(2, 2, 600, 5.80, '2024-12-20', 'Amendoim de alta qualidade', '2025-03-12', 1, 'Ofertas2.jpg'),
-(3, 3, 800, 5.50, '2025-02-20', 'Produção tradicional', '2025-03-14', 1, 'Ofertas3.jpg'),
-(4, 4, 1000, 5.75, '2025-02-25', 'Cultivo sustentável', '2025-03-15', 1, 'Ofertas4.jpg'),
-(5, 5, 1200, 5.90, '2025-03-01', 'Orgânico certificado', '2025-03-16', 1, 'Ofertas5.jpg'),
-(6, 6, 900, 6.00, '2025-03-05', 'Alta qualidade', '2025-03-17', 1, 'Ofertas6.jpg'),
-(7, 7, 1100, 6.10, '2025-03-10', 'Pré-selecionado', '2025-03-18', 1, 'Ofertas7.jpg'),
-(8, 8, 950, 6.20, '2025-03-15', 'Para exportação', '2025-03-19', 1, 'Ofertas8.jpg'),
-(9, 9, 1300, 6.30, '2025-03-20', 'Grãos nobres', '2025-03-20', 1, 'Ofertas9.jpg'),
-(10, 10, 1400, 6.40, '2025-03-25', 'Premium selection', '2025-03-21', 1, 'Ofertas10.jpg');
+INSERT INTO OFERTAS (agri_id, amen_id, oferta_quantidade, oferta_preco, oferta_data_colheita, oferta_outras_informacoes, oferta_data_publicacao, oferta_ativa, oferta_img) 
+VALUES
+(1, 1, 1200, 6500, '2025-01-15', 'Produção sem pesticidas', '2025-03-10', 1, 'Ofertas1.jpg'),
+(2, 2, 600, 3400, '2024-12-20', 'Amendoim de alta qualidade', '2025-03-12', 1, 'Ofertas2.jpg'),
+(3, 3, 800, 4200, '2025-02-20', 'Produção tradicional', '2025-03-14', 1, 'Ofertas3.jpg'),
+(4, 4, 1000, 5000, '2025-02-25', 'Cultivo sustentável', '2025-03-15', 1, 'Ofertas4.jpg'),
+(5, 5, 1200, 7000, '2025-03-01', 'Orgânico certificado', '2025-03-16', 1, 'Ofertas5.jpg'),
+(6, 6, 900, 4800, '2025-03-05', 'Alta qualidade', '2025-03-17', 1, 'Ofertas6.jpg'),
+(7, 7, 1100, 6100, '2025-03-10', 'Pré-selecionado', '2025-03-18', 1, 'Ofertas7.jpg'),
+(8, 8, 950, 5200, '2025-03-15', 'Para exportação', '2025-03-19', 1, 'Ofertas8.jpg'),
+(9, 9, 1300, 7400, '2025-03-20', 'Grãos nobres', '2025-03-20', 1, 'Ofertas9.jpg'),
+(10, 10, 1400, 7800, '2025-03-25', 'Premium selection', '2025-03-21', 1, 'Ofertas10.jpg');
+
 
 -- Décimo: Inserir NEGOCIACOES (depende de OFERTAS e DEMANDAS)
 INSERT INTO NEGOCIACOES (oferta_id, demanda_id, agri_id, emp_id, negoc_status, negoc_data_criacao) VALUES
